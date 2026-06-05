@@ -478,53 +478,21 @@
 
         /* ===== [TAXI-SYSTEM] CSS نظام التاكسي الكامل ===== */
 
-        /* أيقونة التبديل الطائرة (شاهين فلوتينج) */
-        #mode-switcher-fab {
-            position: absolute;
-            top: 58px;
-            left: 12px;
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, #1a051a, #2d0a2d);
-            border: 2px solid var(--gold);
-            border-radius: 50%;
+        /* [TAXI-SYSTEM] شريط شاهين العلوي قابل للسحب — cursor يدل على ذلك */
+        #typing-pulse-bar { cursor: grab; }
+        #typing-pulse-bar:active { cursor: grabbing; }
+        #mode-indicator-text {
             display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 7000;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(212,175,55,0.4);
-            font-size: 22px;
-            transition: transform 0.3s, box-shadow 0.3s;
-            touch-action: none;
-            user-select: none;
-        }
-        #mode-switcher-fab:active { transform: scale(0.9); }
-        #mode-switcher-fab .fab-hint {
+            font-size: 9px;
+            color: rgba(212,175,55,0.8);
             position: absolute;
-            top: 50px;
+            bottom: -12px;
             left: 50%;
             transform: translateX(-50%);
-            background: var(--gold);
-            color: #000;
-            font-size: 9px;
+            white-space: nowrap;
+            background: rgba(0,0,0,0.6);
             padding: 2px 6px;
-            border-radius: 6px;
-            white-space: nowrap;
-            font-weight: bold;
-            pointer-events: none;
-        }
-        #mode-badge {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            background: var(--gold);
-            color: #000;
-            font-size: 7px;
-            font-weight: bold;
-            padding: 2px 4px;
-            border-radius: 5px;
-            white-space: nowrap;
+            border-radius: 4px;
         }
 
         /* شاشة اختيار النظام بعد الدخول */
@@ -603,14 +571,14 @@
         #p-taxi { padding: 0; }
         .taxi-map-container {
             width: 100%;
-            flex: 1;
             position: relative;
-            min-height: 280px;
+            height: 200px;
+            min-height: 200px;
+            flex-shrink: 0;
         }
         #taxi-map {
             width: 100%;
-            height: 100%;
-            min-height: 280px;
+            height: 200px;
             z-index: 1;
         }
         .taxi-bottom-panel {
@@ -740,9 +708,28 @@
             <i class="fas fa-bell"></i>
             <div id="bell-badge" class="notif-badge">0</div>
         </div>
+        <!-- النص الوسطي الأصلي -->
         <div class="typing-text" id="typing-text-content">شاهين إكسبريس | نوفي بعهدكم 🦅</div>
-        <div class="top-nav-action" id="manual-refresh" onclick="manualRefreshDataUI()" title="تحديث">
-            <i class="fas fa-sync-alt"></i>
+        <!-- [TAXI-SYSTEM] زر التحديث = شعار الشاهين + سحب للتاكسي -->
+        <div id="manual-refresh" title="اضغط للتاكسي | اسحب للتبديل"
+             style="display:flex; flex-direction:column; align-items:center; justify-content:center;
+                    cursor:pointer; position:relative; min-width:44px; padding:2px 0;
+                    touch-action:none; user-select:none;">
+            <div style="position:relative; display:inline-block;">
+                <img src="https://i.postimg.cc/QxzPkmPf/Whats-App-Image-2026-04-10-at-6-22-30-PM-t7edrz.jpg"
+                     style="width:32px; height:32px; border-radius:50%;
+                            border:1.5px solid var(--gold);
+                            filter: drop-shadow(0 0 5px rgba(212,175,55,0.6));
+                            animation: textPulse 2.5s infinite; display:block;">
+                <div id="mode-dot" style="position:absolute; bottom:0; left:0;
+                     width:9px; height:9px; border-radius:50%;
+                     border:1.5px solid #1a051a; background:#d4af37;"></div>
+            </div>
+            <span id="mode-indicator-text"
+                  style="font-size:7px; color:rgba(212,175,55,0.8); margin-top:1px;
+                         white-space:nowrap; letter-spacing:0.2px; line-height:1;">
+                اسحب ← تاكسي
+            </span>
         </div>
     </div>
 
@@ -967,11 +954,9 @@
     </div>
     <!-- ===== نهاية اختيار النظام ===== -->
 
-    <!-- ===== [TAXI-SYSTEM] أيقونة التبديل الطائرة ===== -->
-    <div id="mode-switcher-fab" title="تبديل النظام">
-        <span id="fab-icon">🦅</span>
-        <span id="mode-badge">توصيل</span>
-    </div>
+    <!-- ===== [TAXI-SYSTEM] mode-badge مخفي — التبديل عبر سحب شريط الشاهين ===== -->
+    <span id="mode-badge" style="display:none;">توصيل</span>
+    <span id="fab-icon" style="display:none;">🦅</span>
     <!-- ===== نهاية FAB ===== -->
 
     <!-- ===== [TAXI-SYSTEM] شريط التبديل السريع ===== -->
@@ -997,6 +982,8 @@
         <button id="taxi-cancel-btn" class="btn-gold" style="background:#e74c3c; color:#fff; font-size:12px; padding:10px 24px; display:none;" onclick="cancelTaxiTrip()">إلغاء الرحلة ❌</button>
     </div>
     <!-- ===== نهاية حالة الرحلة ===== -->
+
+    <div id="p-login" class="page active" style="justify-content:center; text-align:center;">
         <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 20px;">
             <img src="https://i.postimg.cc/QxzPkmPf/Whats-App-Image-2026-04-10-at-6-22-30-PM-t7edrz.jpg" width="100" style="border-radius:25px; border:2px solid var(--gold);">
         </div>
@@ -1365,20 +1352,46 @@
 
     <!-- ===== [TAXI-SYSTEM] صفحة التاكسي ===== -->
     <div id="p-taxi" class="page" style="padding:0; flex-direction:column;">
-        <!-- خريطة التاكسي -->
-        <div class="taxi-map-container">
-            <div id="taxi-map"></div>
+
+        <!-- نص إرشادي -->
+        <div style="background:linear-gradient(135deg,rgba(26,5,26,0.98),rgba(45,10,45,0.98));
+                    border-bottom:1px solid rgba(212,175,55,0.25); padding:8px 14px;
+                    display:flex; align-items:center; gap:10px; flex-shrink:0;">
+            <span style="font-size:20px;">🚖</span>
+            <div style="flex:1;">
+                <div style="color:var(--gold); font-weight:bold; font-size:12px; margin-bottom:2px;">تاكسي شاهين — حماه</div>
+                <div style="color:#aaa; font-size:10px; line-height:1.5;">
+                    ١) ابحث عن وجهتك أو اضغط على الخريطة &nbsp;|&nbsp;
+                    ٢) اضغط <b style="color:var(--gold);">طلب تاكسي</b> &nbsp;|&nbsp;
+                    اضغط شعار الشاهين أعلى للعودة للطلبات 🛵
+                </div>
+            </div>
+        </div>
+
+        <!-- خريطة التاكسي (مصغرة) -->
+        <div class="taxi-map-container" style="min-height:200px; height:200px; flex-shrink:0;">
+            <div id="taxi-map" style="height:200px;"></div>
         </div>
         <!-- لوحة التحكم السفلية -->
         <div class="taxi-bottom-panel">
-            <div style="color:var(--gold); font-weight:bold; font-size:13px; text-align:center; margin-bottom:4px;">🚖 تاكسي شاهين</div>
+            <div style="color:var(--gold); font-weight:bold; font-size:13px; text-align:center; margin-bottom:4px;">🚖 تاكسي شاهين — حماه</div>
+
+            <!-- حقل بحث ذكي عن المعالم -->
+            <div style="position:relative; margin-bottom:4px;">
+                <input type="text" id="taxi-place-search"
+                    placeholder="🔍 ابحث عن معلم في حماه..."
+                    oninput="searchHamaPlace(this.value)"
+                    style="width:100%; padding:8px 10px; border-radius:10px; border:1px solid rgba(212,175,55,0.3); background:rgba(255,255,255,0.06); color:#fff; font-size:12px; font-family:inherit; outline:none;">
+                <div id="taxi-place-results" style="display:none; position:absolute; bottom:100%; left:0; width:100%; background:rgba(20,5,20,0.98); border:1px solid rgba(212,175,55,0.3); border-radius:10px; max-height:160px; overflow-y:auto; z-index:9999;"></div>
+            </div>
+
             <div class="taxi-loc-row" onclick="pickTaxiPickup()">
                 <i class="fas fa-map-marker-alt" style="color:#2ecc71;"></i>
                 <span id="taxi-pickup-label">📍 موقعك الحالي (اضغط للتغيير)</span>
             </div>
             <div class="taxi-loc-row" onclick="pickTaxiDropoff()">
                 <i class="fas fa-flag-checkered" style="color:#e74c3c;"></i>
-                <span id="taxi-dropoff-label">🏁 اختر وجهتك على الخريطة</span>
+                <span id="taxi-dropoff-label">🏁 اختر وجهتك أو ابحث عنها</span>
             </div>
             <div class="taxi-price-row" id="taxi-price-row" style="display:none;">
                 <span class="taxi-price-label">💰 السعر المتوقع</span>
@@ -1449,12 +1462,12 @@
     </div>
 
     <div id="tab-bar" class="tab-bar">
-        <div class="tab-item active" onclick="nav('p-home', event)"><i class="fas fa-home"></i>الرئيسية</div>
-        <div class="tab-item" onclick="nav('p-cart', event)"><i class="fas fa-shopping-basket"></i><span id="badge" class="badge">0</span>السلة</div>
-        <div class="tab-item" onclick="nav('p-history', event)"><i class="fas fa-bolt"></i>طلباتي</div>
+        <div class="tab-item active" id="tab-home" onclick="nav('p-home', event)"><i class="fas fa-home"></i>الرئيسية</div>
+        <div class="tab-item" id="tab-cart" onclick="nav('p-cart', event)"><i class="fas fa-shopping-basket"></i><span id="badge" class="badge">0</span>السلة</div>
+        <div class="tab-item" id="tab-history" onclick="nav('p-history', event)"><i class="fas fa-bolt"></i>طلباتي</div>
         <!-- [TAXI-SYSTEM] تبويب التاكسي — يظهر فقط في وضع التاكسي -->
         <div class="tab-item" id="tab-taxi" onclick="nav('p-taxi', event)" style="display:none;"><i class="fas fa-car"></i>تاكسي</div>
-        <div class="tab-item" onclick="nav('p-profile', event)"><i class="fas fa-user"></i>حسابي</div>
+        <div class="tab-item" id="tab-profile" onclick="nav('p-profile', event)"><i class="fas fa-user"></i>حسابي</div>
     </div>
 </div>
 
@@ -2600,11 +2613,19 @@
         const mainNav = document.getElementById('main-nav-sticky');
         if (mainNav) mainNav.style.display = (id === 'p-home') ? 'flex' : 'none';
 
+        // [TAXI-SYSTEM] tab-bar يظهر دائماً في وضع التاكسي
+        const _tabBarEl = document.getElementById('tab-bar');
+        if (_tabBarEl && currentUser) {
+            const _noTabPages = ['p-login', 'p-pledge'];
+            if (!_noTabPages.includes(id)) _tabBarEl.style.display = 'flex';
+        }
+
         // ── تحميل البيانات حسب الصفحة مع الكاش ──
         if (id === 'p-home')    { _navHome(); }
         if (id === 'p-cart')    { renderCart(); _ensureConnectionBeforeOrder && _ensureConnectionBeforeOrder().catch(()=>{}); }
         if (id === 'p-history') { renderHistory(); }
         if (id === 'p-profile') { initProfileMap(); }
+        if (id === 'p-taxi')    { _initTaxiPage(); }
         if (id !== 'p-chat' && _clientMsgPollInterval) { clearInterval(_clientMsgPollInterval); _clientMsgPollInterval = null; }
     }
 
@@ -6855,6 +6876,236 @@
     // [TAXI-SYSTEM] نظام التاكسي الكامل — شاهين إكسبريس
     // ================================================================
 
+    // ================================================================
+    // [TAXI-HAMA] قاعدة بيانات معالم مدينة حماه السورية
+    // ================================================================
+    const _HAMA_PLACES = [
+        // ═══ المستشفيات والمراكز الصحية ═══
+        { name: "مشفى الغسالة",           aliases: ["الغسالة","مشفى حماه الوطني","الوطني"],       lat: 35.1318, lng: 36.7510, cat: "مستشفى" },
+        { name: "مشفى الأسد الجامعي",     aliases: ["الأسد","جامعي","الجامعي","مشفى الأسد"],      lat: 35.1275, lng: 36.7480, cat: "مستشفى" },
+        { name: "مشفى السبيل",             aliases: ["السبيل","مشفى السبيل"],                       lat: 35.1350, lng: 36.7540, cat: "مستشفى" },
+        { name: "مشفى الرازي",             aliases: ["الرازي"],                                     lat: 35.1290, lng: 36.7460, cat: "مستشفى" },
+        { name: "مشفى العيون",             aliases: ["عيون","مشفى عيون","عيون حماه"],              lat: 35.1305, lng: 36.7495, cat: "مستشفى" },
+        { name: "مشفى الأمل",              aliases: ["الأمل","امل"],                                lat: 35.1285, lng: 36.7470, cat: "مستشفى" },
+        { name: "مشفى الكندي",             aliases: ["الكندي"],                                     lat: 35.1295, lng: 36.7485, cat: "مستشفى" },
+        { name: "مركز صحي الحاضر",        aliases: ["صحي الحاضر","مركز حاضر"],                    lat: 35.1395, lng: 36.7575, cat: "مركز صحي" },
+        // ═══ الجامعات والمعاهد ═══
+        { name: "جامعة المعرفة",           aliases: ["المعرفة","جامعة حماه"],                      lat: 35.1260, lng: 36.7430, cat: "جامعة" },
+        { name: "جامعة الفرات",            aliases: ["الفرات","فرات"],                              lat: 35.1245, lng: 36.7420, cat: "جامعة" },
+        { name: "كلية الهندسة",            aliases: ["الهندسة","هندسة","كلية هندسة"],              lat: 35.1255, lng: 36.7440, cat: "جامعة" },
+        { name: "كلية الطب",               aliases: ["طب","كلية طب"],                               lat: 35.1265, lng: 36.7435, cat: "جامعة" },
+        { name: "معهد الهلال الأحمر",      aliases: ["الهلال الأحمر","هلال","معهد هلال"],          lat: 35.1300, lng: 36.7505, cat: "معهد" },
+        // ═══ الأحياء والمناطق ═══
+        { name: "حي الحاضر",               aliases: ["الحاضر","حاضر","حي حاضر"],                  lat: 35.1400, lng: 36.7580, cat: "حي" },
+        { name: "حي العليلية",             aliases: ["العليلية","عليلية"],                          lat: 35.1450, lng: 36.7600, cat: "حي" },
+        { name: "حي الحمراء",              aliases: ["الحمراء","حمراء"],                            lat: 35.1380, lng: 36.7520, cat: "حي" },
+        { name: "حي باب قبلي",             aliases: ["باب قبلي","قبلي","باب القبلي"],              lat: 35.1280, lng: 36.7490, cat: "حي" },
+        { name: "حي بستان الديوان",        aliases: ["بستان الديوان","الديوان","بستان"],            lat: 35.1320, lng: 36.7530, cat: "حي" },
+        { name: "حي كيلانية",              aliases: ["كيلانية","كيلاني"],                          lat: 35.1360, lng: 36.7560, cat: "حي" },
+        { name: "حي المرابط",              aliases: ["المرابط","مرابط"],                            lat: 35.1310, lng: 36.7515, cat: "حي" },
+        { name: "حي أبو الفداء",           aliases: ["أبو الفداء","ابو الفداء","الفداء"],          lat: 35.1295, lng: 36.7500, cat: "حي" },
+        { name: "حي الشيخ عنبر",           aliases: ["شيخ عنبر","عنبر"],                           lat: 35.1290, lng: 36.7462, cat: "حي" },
+        { name: "حي طريق حلب",             aliases: ["طريق حلب","حلب"],                            lat: 35.1450, lng: 36.7620, cat: "حي" },
+        { name: "حي الصابونية",            aliases: ["الصابونية","صابونية"],                        lat: 35.1330, lng: 36.7545, cat: "حي" },
+        { name: "حي المحافظة",             aliases: ["المحافظة","محافظة حماه"],                    lat: 35.1318, lng: 36.7578, cat: "حي" },
+        { name: "حي السوق",               aliases: ["وسط المدينة","وسط حماه","السوق القديم"],     lat: 35.1318, lng: 36.7578, cat: "حي" },
+        { name: "حي القصور",               aliases: ["القصور","قصور"],                              lat: 35.1340, lng: 36.7555, cat: "حي" },
+        { name: "حي الأربعين",             aliases: ["الأربعين","اربعين"],                         lat: 35.1370, lng: 36.7565, cat: "حي" },
+        { name: "حي الضاحية",              aliases: ["الضاحية","ضاحية"],                           lat: 35.1230, lng: 36.7410, cat: "حي" },
+        { name: "حي طريق حمص",             aliases: ["طريق حمص","حمص"],                            lat: 35.1180, lng: 36.7380, cat: "حي" },
+        { name: "حي الشماليات",            aliases: ["الشماليات","شماليات"],                        lat: 35.1420, lng: 36.7590, cat: "حي" },
+        { name: "حي الحميدية",             aliases: ["الحميدية","حميدية"],                         lat: 35.1355, lng: 36.7558, cat: "حي" },
+        { name: "حي المشاع",               aliases: ["المشاع","مشاع"],                              lat: 35.1270, lng: 36.7460, cat: "حي" },
+        // ═══ المساجد والجوامع ═══
+        { name: "جامع السلطان",            aliases: ["السلطان","مسجد السلطان","جامع السلطان"],      lat: 35.1318, lng: 36.7580, cat: "جامع" },
+        { name: "جامع النوري الكبير",      aliases: ["النوري","الجامع النوري","نوري","جامع نوري"], lat: 35.1310, lng: 36.7570, cat: "جامع" },
+        { name: "جامع الحسنين",            aliases: ["الحسنين","حسنين"],                            lat: 35.1325, lng: 36.7552, cat: "جامع" },
+        { name: "جامع أبو الفداء",         aliases: ["جامع الفداء","مسجد الفداء"],                 lat: 35.1298, lng: 36.7502, cat: "جامع" },
+        { name: "جامع العمري",             aliases: ["العمري","مسجد العمري","عمري"],               lat: 35.1312, lng: 36.7568, cat: "جامع" },
+        { name: "جامع الحاضر",             aliases: ["مسجد الحاضر","جامع حاضر"],                  lat: 35.1398, lng: 36.7578, cat: "جامع" },
+        { name: "جامع الشيخ عنبر",         aliases: ["مسجد شيخ عنبر","جامع عنبر"],                lat: 35.1288, lng: 36.7458, cat: "جامع" },
+        { name: "جامع خالد بن الوليد",     aliases: ["خالد","مسجد خالد","ابن الوليد"],            lat: 35.1335, lng: 36.7548, cat: "جامع" },
+        { name: "جامع الإخلاص",            aliases: ["الإخلاص","اخلاص","مسجد الإخلاص"],           lat: 35.1308, lng: 36.7512, cat: "جامع" },
+        { name: "جامع التوبة",             aliases: ["التوبة","مسجد التوبة"],                      lat: 35.1345, lng: 36.7562, cat: "جامع" },
+        // ═══ الكنائس ═══
+        { name: "كنيسة مار جرجس",          aliases: ["مار جرجس","جرجس","كنيسة جرجس"],             lat: 35.1308, lng: 36.7555, cat: "كنيسة" },
+        { name: "كنيسة السيدة العذراء",    aliases: ["العذراء","مريم","كنيسة العذراء"],            lat: 35.1315, lng: 36.7548, cat: "كنيسة" },
+        // ═══ المعالم السياحية ═══
+        { name: "النواعير",                aliases: ["نواعير","الناعورة","ناعورة"],                 lat: 35.1318, lng: 36.7578, cat: "معلم سياحي" },
+        { name: "قلعة حماه",               aliases: ["القلعة","قلعة"],                              lat: 35.1350, lng: 36.7590, cat: "معلم سياحي" },
+        { name: "منتزه العاصي",            aliases: ["العاصي","شاطئ العاصي","نهر العاصي"],         lat: 35.1318, lng: 36.7578, cat: "منتزه" },
+        { name: "حديقة البلدية",           aliases: ["حديقة البلدية","حديقة عامة"],                lat: 35.1330, lng: 36.7550, cat: "منتزه" },
+        { name: "متحف حماه",               aliases: ["المتحف","متحف"],                              lat: 35.1322, lng: 36.7582, cat: "معلم سياحي" },
+        // ═══ المدارس ═══
+        { name: "مدرسة الشهيد رياض",       aliases: ["مدرسة رياض","شهيد رياض"],                    lat: 35.1335, lng: 36.7555, cat: "مدرسة" },
+        { name: "ثانوية حماه الأولى",      aliases: ["ثانوية حماه","الأولى"],                      lat: 35.1310, lng: 36.7520, cat: "مدرسة" },
+        // ═══ الأسواق والمراكز التجارية ═══
+        { name: "السوق التجاري",           aliases: ["السوق","سوق حماه","الشعبي"],                 lat: 35.1300, lng: 36.7510, cat: "سوق" },
+        { name: "سيتي مول حماه",           aliases: ["سيتي مول","سيتي","المول"],                   lat: 35.1270, lng: 36.7450, cat: "مول" },
+        { name: "سوق الخضار المركزي",      aliases: ["سوق خضار","خضار"],                           lat: 35.1305, lng: 36.7515, cat: "سوق" },
+        // ═══ الدوارات والمحاور ═══
+        { name: "دوار الساعة",             aliases: ["الساعة","ساعة","دوار ساعة"],                 lat: 35.1318, lng: 36.7578, cat: "دوار" },
+        { name: "دوار البياضة",            aliases: ["البياضة","بياضة"],                            lat: 35.1340, lng: 36.7560, cat: "دوار" },
+        { name: "دوار الخابور",            aliases: ["الخابور","خابور"],                            lat: 35.1360, lng: 36.7570, cat: "دوار" },
+        { name: "دوار الصناعية",           aliases: ["صناعي","صناعية","دوار صناعي"],               lat: 35.1205, lng: 36.7385, cat: "دوار" },
+        { name: "تقاطع طريق حلب",         aliases: ["تقاطع حلب","مفرق حلب"],                      lat: 35.1460, lng: 36.7625, cat: "دوار" },
+        // ═══ الفنادق ═══
+        { name: "فندق أفاميا شيراتون",     aliases: ["شيراتون","افاميا","أفاميا","فندق شيراتون"], lat: 35.1318, lng: 36.7560, cat: "فندق" },
+        { name: "فندق سمر لاند",           aliases: ["سمر لاند","سمرلاند","سمر"],                  lat: 35.1300, lng: 36.7540, cat: "فندق" },
+        { name: "فندق كمال",               aliases: ["كمال","فندق كمال"],                          lat: 35.1315, lng: 36.7545, cat: "فندق" },
+        // ═══ المواصلات والكراجات ═══
+        { name: "كراج العلبي",             aliases: ["العلبي","كراج علبي","الكراج","محطة علبي"],   lat: 35.1200, lng: 36.7400, cat: "كراج" },
+        { name: "كراج الشمال",             aliases: ["كراج شمال","شمال","محطة شمال"],              lat: 35.1420, lng: 36.7610, cat: "كراج" },
+        { name: "كراج حمص",                aliases: ["كراج حمص","محطة حمص"],                       lat: 35.1180, lng: 36.7370, cat: "كراج" },
+        { name: "محطة القطار",             aliases: ["القطار","قطار","محطة قطار"],                  lat: 35.1250, lng: 36.7420, cat: "محطة" },
+        // ═══ الدوائر الحكومية ═══
+        { name: "محافظة حماه",             aliases: ["المحافظة","ديوان المحافظة"],                  lat: 35.1318, lng: 36.7578, cat: "دائرة حكومية" },
+        { name: "بلدية حماه",              aliases: ["البلدية","بلدية"],                            lat: 35.1325, lng: 36.7572, cat: "دائرة حكومية" },
+        { name: "المحكمة",                 aliases: ["محكمة حماه","قصر العدل"],                    lat: 35.1320, lng: 36.7565, cat: "دائرة حكومية" },
+        { name: "مديرية التربية",          aliases: ["التربية","مديرية تربية"],                     lat: 35.1305, lng: 36.7510, cat: "دائرة حكومية" },
+        // ═══ المنطقة الصناعية ═══
+        { name: "المنطقة الصناعية",        aliases: ["صناعية","الصناعية","منطقة صناعية"],          lat: 35.1200, lng: 36.7380, cat: "منطقة صناعية" }
+    ];
+
+    // ── البحث الذكي في معالم حماه ──
+    function searchHamaPlace(query) {
+        var rd = document.getElementById('taxi-place-results');
+        if (!rd) return;
+        var q = query.trim();
+        if (q.length < 1) { rd.style.display = 'none'; return; }
+
+        // تقسيم الكلمات للبحث المتعدد
+        var words = q.split(/\s+/).filter(function(w){ return w.length > 0; });
+
+        // دالة تسجيل النقاط — كلما زادت المطابقة زادت النقاط
+        function score(p) {
+            var s = 0;
+            var allText = [p.name].concat(p.aliases).join(' ');
+
+            // مطابقة كاملة للاسم = أعلى نقطة
+            if (p.name === q) s += 100;
+            // الاسم يحتوي على الكلمة كاملة
+            if (p.name.indexOf(q) !== -1) s += 50;
+            // كل كلمة مبحوثة موجودة في الاسم أو المرادفات
+            words.forEach(function(w) {
+                if (allText.indexOf(w) !== -1) s += 20;
+                // حرف واحد مشترك على الأقل (بحث جزئي)
+                for (var i = 0; i < allText.length - 1; i++) {
+                    if (w.length >= 2 && allText.substr(i, w.length) === w) { s += 10; break; }
+                }
+            });
+            // مطابقة جزئية لأول حرفين
+            if (q.length >= 2 && p.name.indexOf(q.substring(0,2)) !== -1) s += 5;
+
+            return s;
+        }
+
+        // جمع كل المعالم مع نقاطها
+        var scored = _HAMA_PLACES.map(function(p) {
+            return { p: p, s: score(p) };
+        }).filter(function(x) { return x.s > 0; });
+
+        // ترتيب تنازلياً
+        scored.sort(function(a, b) { return b.s - a.s; });
+        var matches = scored.map(function(x) { return x.p; });
+
+        rd.style.display = 'block';
+        rd.innerHTML = '';
+
+        function mkRow(p, highlight) {
+            var d = document.createElement('div');
+            d.style.cssText = 'padding:9px 12px; border-bottom:1px solid rgba(212,175,55,0.08); cursor:pointer; font-size:11px; display:flex; justify-content:space-between; align-items:center; transition:background 0.15s;';
+            d.onmouseover = function(){ this.style.background='rgba(212,175,55,0.08)'; };
+            d.onmouseout  = function(){ this.style.background=''; };
+            var nameHtml = p.name;
+            // تظليل الكلمة المبحوثة
+            if (q.length >= 2) {
+                nameHtml = p.name.replace(new RegExp('(' + q.replace(/[.*+?^${}()|[\]\]/g,'\$&') + ')', 'g'),
+                    '<b style="color:var(--gold);">$1</b>');
+            }
+            d.innerHTML = '<span>📍 ' + nameHtml + '</span>' +
+                '<span style="font-size:9px;color:#888;background:rgba(212,175,55,0.07);padding:2px 7px;border-radius:5px;flex-shrink:0;">' + p.cat + '</span>';
+            d.addEventListener('click', function() { _selectHamaPlace(p.lat, p.lng, p.name); });
+            return d;
+        }
+
+        if (matches.length === 0) {
+            // لا نتائج — نقترح إنشاء معلم جديد
+            var hdr = document.createElement('div');
+            hdr.style.cssText = 'padding:10px 12px; font-size:11px; color:#aaa; text-align:center; border-bottom:1px solid rgba(212,175,55,0.1);';
+            hdr.innerHTML = '🔍 "<b style="color:var(--gold);">' + q + '</b>" غير موجود — اختر من الأشهر:';
+            rd.appendChild(hdr);
+            // اعرض أشهر 5 معالم كاقتراح
+            var popular = ["دوار الساعة","النواعير","كراج العلبي","مشفى الغسالة","سيتي مول حماه","جامع السلطان","حي الحاضر","محافظة حماه"];
+            _HAMA_PLACES.filter(function(p){ return popular.indexOf(p.name) !== -1; }).slice(0,5).forEach(function(p){
+                rd.appendChild(mkRow(p, false));
+            });
+            // زر تحديد يدوي
+            var mapBtn = document.createElement('div');
+            mapBtn.style.cssText = 'padding:9px 12px; cursor:pointer; font-size:11px; color:var(--gold); text-align:center; border-top:1px solid rgba(212,175,55,0.15);';
+            mapBtn.innerHTML = '🗺️ اضغط على الخريطة لتحديد "' + q + '" يدوياً';
+            mapBtn.addEventListener('click', function() { _openMapForUnknown(q); });
+            rd.appendChild(mapBtn);
+            return;
+        }
+
+        // عرض النتائج مع رسالة توضيحية
+        var info = document.createElement('div');
+        info.style.cssText = 'padding:5px 12px; font-size:9px; color:rgba(212,175,55,0.6); border-bottom:1px solid rgba(212,175,55,0.08);';
+        info.innerText = 'وجدنا ' + matches.length + ' نتيجة في حماه:';
+        rd.appendChild(info);
+
+        matches.slice(0, 8).forEach(function(p) { rd.appendChild(mkRow(p, true)); });
+
+        // إذا في نتائج أكثر
+        if (matches.length > 8) {
+            var more = document.createElement('div');
+            more.style.cssText = 'padding:7px 12px; font-size:10px; color:#888; text-align:center;';
+            more.innerText = '+ ' + (matches.length - 8) + ' نتيجة أخرى — أكتب أكثر لتضييق البحث';
+            rd.appendChild(more);
+        }
+    }
+
+        // ── اقتراح أماكن مشابهة لبحث غير معروف ──
+    function _getSuggestedPlaces(q) {
+        // نعيد أشهر 4 معالم كاقتراح عند عدم المعرفة
+        const common = ["النواعير","دوار الساعة","كراج العلبي","سيتي مول حماه","مشفى الغسالة"];
+        return _HAMA_PLACES.filter(function(p) { return common.includes(p.name); }).slice(0, 4);
+    }
+
+    // ── عند اختيار معلم من القائمة ──
+    function _selectHamaPlace(lat, lng, name) {
+        // نضع الوجهة تلقائياً
+        _taxiDropoffLoc = { lat: lat, lng: lng };
+        _setTaxiDropoffMarker(lat, lng, name);
+        if (_taxiMap) _taxiMap.setView([lat, lng], 15);
+        document.getElementById('taxi-dropoff-label').innerText = '🏁 ' + name;
+        document.getElementById('taxi-place-results').style.display = 'none';
+        document.getElementById('taxi-place-search').value = name;
+        _calcTaxiRoute();
+        showNotify('📍 تم تحديد: ' + name, 'success');
+    }
+
+    // ── فتح الخريطة للبحث يدوي عن مكان غير معروف ──
+    function _openMapForUnknown(name) {
+        document.getElementById('taxi-place-results').style.display = 'none';
+        _taxiPickMode = 'dropoff';
+        showNotify('📍 اضغط على الخريطة لتحديد موقع "' + name + '"', 'info');
+    }
+
+    // ── إغلاق نتائج البحث عند الضغط خارجها ──
+    document.addEventListener('click', function(e) {
+        const sr = document.getElementById('taxi-place-results');
+        const si = document.getElementById('taxi-place-search');
+        if (sr && si && !sr.contains(e.target) && e.target !== si) {
+            sr.style.display = 'none';
+        }
+    });
+
+    // ================================================================
+    // [END-HAMA-PLACES]
+    // ================================================================
+
     // ── متغيرات نظام التاكسي ──
     let _taxiMode = localStorage.getItem('shahen_app_mode') || 'delivery'; // 'delivery' | 'taxi'
     let _taxiPickupLoc = null;
@@ -6872,76 +7123,106 @@
     let _taxiFabDragging = false;
     let _taxiFabStartX = 0;
 
-    // ── تهيئة FAB (أيقونة التبديل الطائرة) ──
+    // ── تهيئة السحب على شعار الشاهين (زر التحديث) ──
     function _initTaxiFab() {
-        const fab = document.getElementById('mode-switcher-fab');
-        if (!fab) return;
+        var btn = document.getElementById('manual-refresh');
+        if (!btn) return;
 
-        // سحب للتبديل بين الأوضاع
-        fab.addEventListener('touchstart', function(e) {
-            _taxiFabDragging = false;
-            _taxiFabStartX = e.touches[0].clientX;
+        var _pressStart = 0;
+        var _pressStartX = 0;
+        var _pressStartY = 0;
+        var _moved = false;
+
+        // ── Touch ──
+        btn.addEventListener('touchstart', function(e) {
+            _pressStart  = Date.now();
+            _pressStartX = e.touches[0].clientX;
+            _pressStartY = e.touches[0].clientY;
+            _moved = false;
+            e.preventDefault();
+        }, { passive: false });
+
+        btn.addEventListener('touchmove', function(e) {
+            var dx = e.touches[0].clientX - _pressStartX;
+            var dy = e.touches[0].clientY - _pressStartY;
+            if (Math.abs(dx) > 10 || Math.abs(dy) > 10) _moved = true;
         }, { passive: true });
 
-        fab.addEventListener('touchend', function(e) {
-            const endX = e.changedTouches[0].clientX;
-            const diff = endX - _taxiFabStartX;
-            if (Math.abs(diff) > 40) {
-                _taxiFabDragging = true;
-                if (diff > 0) {
-                    switchAppMode('taxi');
-                } else {
-                    switchAppMode('delivery');
-                }
+        btn.addEventListener('touchend', function(e) {
+            var dx   = e.changedTouches[0].clientX - _pressStartX;
+            var held = Date.now() - _pressStart;
+
+            if (_moved && Math.abs(dx) > 35) {
+                // سحب يمين = تاكسي | يسار = طلبات
+                var mode = dx > 0 ? 'taxi' : 'delivery';
+                _showSwipeHint(mode);
+                setTimeout(function() { switchAppMode(mode); }, 120);
+            } else if (!_moved) {
+                // نقرة عادية — تبديل الوضع
+                var newMode = (_taxiMode === 'taxi') ? 'delivery' : 'taxi';
+                _showSwipeHint(newMode);
+                setTimeout(function() { switchAppMode(newMode); }, 120);
             }
         });
 
-        fab.addEventListener('mousedown', function(e) {
-            _taxiFabDragging = false;
-            _taxiFabStartX = e.clientX;
+        // ── Mouse (للتطوير) ──
+        btn.addEventListener('mousedown', function(e) {
+            _pressStart  = Date.now();
+            _pressStartX = e.clientX;
+            _moved = false;
         });
 
-        fab.addEventListener('mouseup', function(e) {
-            const diff = e.clientX - _taxiFabStartX;
-            if (Math.abs(diff) > 40) {
-                _taxiFabDragging = true;
-                if (diff > 0) {
-                    switchAppMode('taxi');
-                } else {
-                    switchAppMode('delivery');
-                }
-            }
+        btn.addEventListener('mousemove', function(e) {
+            if (Math.abs(e.clientX - _pressStartX) > 10) _moved = true;
         });
 
-        fab.addEventListener('click', function() {
-            if (_taxiFabDragging) return;
-            // توجيه لصفحة الوضع الحالي
-            if (_taxiMode === 'taxi') {
-                nav('p-taxi');
-            } else {
-                nav('p-home');
+        btn.addEventListener('mouseup', function(e) {
+            var dx   = e.clientX - _pressStartX;
+            var held = Date.now() - _pressStart;
+
+            if (_moved && Math.abs(dx) > 35) {
+                var mode = dx > 0 ? 'taxi' : 'delivery';
+                _showSwipeHint(mode);
+                setTimeout(function() { switchAppMode(mode); }, 120);
+            } else if (!_moved) {
+                var newMode = (_taxiMode === 'taxi') ? 'delivery' : 'taxi';
+                _showSwipeHint(newMode);
+                setTimeout(function() { switchAppMode(newMode); }, 120);
             }
         });
     }
 
-    // ── تحديث واجهة FAB ──
+    // ── تلميح بصري عند السحب — وميض الشعار ──
+    function _showSwipeHint(mode) {
+        var btn = document.getElementById('manual-refresh');
+        if (!btn) return;
+        var img = btn.querySelector('img');
+        if (!img) return;
+        img.style.transform = mode === 'taxi' ? 'scale(1.2) rotate(10deg)' : 'scale(1.2) rotate(-10deg)';
+        img.style.borderColor = mode === 'taxi' ? '#3498db' : '#d4af37';
+        setTimeout(function() {
+            img.style.transform = '';
+            img.style.borderColor = '';
+        }, 350);
+    }
+
+    // ── تحديث مؤشر الوضع على شعار الشاهين ──
     function _updateFabUI() {
-        const fab = document.getElementById('mode-switcher-fab');
-        const badge = document.getElementById('mode-badge');
-        const fabIcon = document.getElementById('fab-icon');
-        const pillDelivery = document.getElementById('pill-delivery');
-        const pillTaxi = document.getElementById('pill-taxi');
-        if (!fab) return;
+        var indicator  = document.getElementById('mode-indicator-text');
+        var dot        = document.getElementById('mode-dot');
+        var pillDelivery = document.getElementById('pill-delivery');
+        var pillTaxi     = document.getElementById('pill-taxi');
+
         if (_taxiMode === 'taxi') {
-            if (badge) badge.innerText = 'تاكسي';
-            if (fabIcon) fabIcon.innerText = '🚖';
+            if (indicator) indicator.innerText = 'تاكسي 🚖 ← طلبات';
+            if (dot) { dot.style.background = '#3498db'; dot.style.boxShadow = '0 0 4px #3498db'; }
             if (pillDelivery) pillDelivery.classList.remove('active-pill');
-            if (pillTaxi) pillTaxi.classList.add('active-pill');
+            if (pillTaxi)     pillTaxi.classList.add('active-pill');
         } else {
-            if (badge) badge.innerText = 'توصيل';
-            if (fabIcon) fabIcon.innerText = '🦅';
+            if (indicator) indicator.innerText = 'اسحب ← تاكسي';
+            if (dot) { dot.style.background = '#d4af37'; dot.style.boxShadow = '0 0 4px rgba(212,175,55,0.8)'; }
             if (pillDelivery) pillDelivery.classList.add('active-pill');
-            if (pillTaxi) pillTaxi.classList.remove('active-pill');
+            if (pillTaxi)     pillTaxi.classList.remove('active-pill');
         }
     }
 
@@ -6963,33 +7244,62 @@
     }
 
     // ── تطبيق الوضع على الواجهة ──
-    function _applyAppMode(mode, firstTime) {
-        const tabBar = document.getElementById('tab-bar');
-        const tabTaxi = document.getElementById('tab-taxi');
-        const modeBar = document.getElementById('mode-switch-bar');
-        const fab = document.getElementById('mode-switcher-fab');
-
-        _updateFabUI();
+    // ── إخفاء/إظهار تبويبات حسب الوضع ──
+    function _setTabsForMode(mode) {
+        var deliveryTabs = ['tab-home', 'tab-cart', 'tab-history'];
+        var taxiTabs     = ['tab-taxi'];
+        var alwaysTabs   = ['tab-profile'];
 
         if (mode === 'taxi') {
-            // إظهار تبويب التاكسي
-            if (tabTaxi) tabTaxi.style.display = 'flex';
-            if (modeBar) modeBar.style.display = 'flex';
-            if (fab) fab.style.display = 'flex';
-            // الانتقال لصفحة التاكسي
+            // وضع التاكسي: تاكسي + حسابي فقط
+            deliveryTabs.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            taxiTabs.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.style.display = 'flex';
+            });
+        } else {
+            // وضع الطلبات: الرئيسية + السلة + طلباتي + حسابي
+            deliveryTabs.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.style.display = 'flex';
+            });
+            taxiTabs.forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        }
+        // حسابي يظهر دائماً
+        alwaysTabs.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = 'flex';
+        });
+    }
+
+    function _applyAppMode(mode, firstTime) {
+        var tabBar = document.getElementById('tab-bar');
+
+        _taxiMode = mode;
+        _updateFabUI();
+
+        // tab-bar ظاهر دائماً بعد الدخول
+        if (tabBar && currentUser) tabBar.style.display = 'flex';
+
+        // تحديث التبويبات حسب الوضع
+        _setTabsForMode(mode);
+
+        if (mode === 'taxi') {
             setTimeout(function() {
                 nav('p-taxi');
-                _initTaxiPage();
+                setTimeout(function() { _initTaxiPage(); }, 100);
             }, 50);
-            showNotify('🚖 تم التبديل إلى وضع التاكسي', 'info');
+            if (!firstTime) showNotify('🚖 وضع التاكسي — اضغط الشعار للرجوع للطلبات', 'info');
         } else {
-            // إخفاء تبويب التاكسي والعودة للتوصيل
-            if (tabTaxi) tabTaxi.style.display = 'none';
-            if (modeBar) modeBar.style.display = 'flex';
-            if (fab) fab.style.display = 'flex';
             if (!firstTime) {
                 setTimeout(function() { nav('p-home'); }, 50);
-                showNotify('🛵 تم التبديل إلى وضع التوصيل', 'info');
+                showNotify('🛵 وضع الطلبات — اضغط الشعار للتاكسي', 'info');
             } else {
                 nav('p-home');
             }
@@ -7321,10 +7631,6 @@
     function _afterLoginTaxiInit() {
         try {
             const chosen = localStorage.getItem('shahen_app_mode_chosen');
-            const fab = document.getElementById('mode-switcher-fab');
-            const modeBar = document.getElementById('mode-switch-bar');
-            if (fab) fab.style.display = 'flex';
-            if (modeBar) modeBar.style.display = 'flex';
             _updateFabUI();
             if (!chosen) {
                 setTimeout(function() {
@@ -7343,10 +7649,15 @@
     }
 
     // تشغيل التهيئة بعد تحميل كل شيء
+    // تشغيل FAB فوراً بمجرد تحميل DOM — بدون انتظار
     document.addEventListener('DOMContentLoaded', function() {
+        _initTaxiFab();
+        _updateFabUI();
         setTimeout(_initTaxiSystem, 800);
     });
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        _initTaxiFab();
+        _updateFabUI();
         setTimeout(_initTaxiSystem, 800);
     }
 
