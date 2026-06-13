@@ -34,6 +34,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --gold: #d4af37; --purple: #1a051a; --glass: rgba(30, 10, 30, 0.95); }
+        @keyframes txPulseNav { 0% { transform: scale(0.8); opacity: 0.7; } 70% { transform: scale(1.6); opacity: 0; } 100% { opacity: 0; } }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; transition: 0.3s; }
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; display: flex; justify-content: center; align-items: center; font-size: 11px; }
         
@@ -1721,6 +1722,15 @@
          [TAXI-PAGES] صفحات نظام التاكسي المستقل للسائق 🚕
          نظام منفصل بالكامل عن نظام الطلبات — جداول مستقلة (taxi_orders / taxi_drivers)
          ════════════════════════════════════════════════════════════════════ -->
+    <!-- [TAXI-INBOX-PAGE] صندوق بريد سائق التاكسي: شحن/خصم/رسائل الإدارة -->
+    <div id="p-taxi-inbox" class="page" style="overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin:8px 4px 12px;">
+            <h2 style="color:#f1c40f; font-size:16px; margin:0;"><i class="fas fa-envelope"></i> صندوق البريد 📬</h2>
+            <button onclick="taxiInboxReadAllDriver()" style="background:rgba(46,204,113,0.12); border:1px solid #2ecc71; color:#2ecc71; border-radius:9px; padding:6px 11px; font-size:10px; font-weight:bold; cursor:pointer;"><i class="fas fa-check-double"></i> قراءة الكل</button>
+        </div>
+        <div id="taxi-inbox-msgs" style="margin:0 6px 90px;"><div style="text-align:center; opacity:0.5; padding:20px;">جاري التحميل...</div></div>
+    </div>
+    <!-- نهاية [TAXI-INBOX-PAGE] -->
     <!-- [TAXI-WALLET] محفظة سائق التاكسي — نفس النظام المالي وحسابه (رصيد + كشف حساب) -->
     <div id="p-taxi-wallet" class="page" style="overflow-y:auto;">
         <h2 style="color:#f1c40f; text-align:center; margin-top:6px; font-size:16px;"><i class="fas fa-wallet"></i> محفظة التاكسي 💰</h2>
@@ -1759,6 +1769,119 @@
         <button onclick="txTaxiLogout()" style="width:75%; max-width:280px; background:transparent; color:#e74c3c; border:1px solid #e74c3c; border-radius:12px; padding:11px; font-size:11px; font-weight:bold; cursor:pointer; margin-bottom:90px;"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</button>
     </div>
     <!-- نهاية [TAXI-PROFILE] -->
+    <!-- [TX-INAPP-NAV] الملاحة المدمجة داخل التطبيق (داخل إطار التطبيق بمقاسه — لا تغطي المتصفح) -->
+    <div id="tx-nav-screen" style="display:none; position:absolute; inset:0; z-index:9000; background:#0a0a0a; flex-direction:column; border-radius:38px; overflow:hidden;">
+        <div id="tx-nav-map" style="flex:1; width:100%;"></div>
+        <!-- شريط التعليمات العلوي (الخطوة الحالية بوضوح مثل قوقل ماب) -->
+        <div style="position:absolute; top:0; left:0; right:0; z-index:1200; background:#15041a; border-bottom:2px solid #6c3483; padding:calc(10px + env(safe-area-inset-top,0px)) 12px 12px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <div id="tx-nav-arrow" style="font-size:38px; color:#2ecc71; width:50px; text-align:center; flex-shrink:0;">⬆️</div>
+                <div style="flex:1; min-width:0;">
+                    <div id="tx-nav-distance" style="color:#f1c40f; font-size:18px; font-weight:900; line-height:1.2;">--</div>
+                    <div id="tx-nav-instruction" style="color:#fff; font-size:14px; font-weight:bold; line-height:1.45; margin-top:2px;">جارٍ تحديد المسار...</div>
+                    <div id="tx-nav-current-road" style="color:#c39bd3; font-size:10.5px; margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><i class="fas fa-road"></i> <span id="tx-nav-current-road-name">--</span></div>
+                </div>
+                <button onclick="txCloseInAppNav()" style="background:#6c3483; border:none; color:#fff; border-radius:10px; padding:10px 13px; font-size:13px; font-weight:bold; cursor:pointer; flex-shrink:0;"><i class="fas fa-times"></i></button>
+            </div>
+            <!-- الخطوة التالية (تلميح مُسبق مثل قوقل ماب) -->
+            <div id="tx-nav-next" style="display:none; align-items:center; gap:8px; margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.12);">
+                <span style="font-size:10px; opacity:0.55;">ثم</span>
+                <span id="tx-nav-next-arrow" style="font-size:18px;">⬆️</span>
+                <span id="tx-nav-next-text" style="font-size:11px; opacity:0.8;">--</span>
+            </div>
+            <!-- شريط معلومات واضح بالأعلى: الوقت + المسافة + اسم الشارع الحالي -->
+            <div style="display:flex; align-items:center; gap:8px; margin-top:9px; padding-top:9px; border-top:1px solid rgba(255,255,255,0.12);">
+                <div style="flex:1; text-align:center;">
+                    <div id="tx-nav-eta-min" style="color:#2ecc71; font-size:17px; font-weight:900; line-height:1;">--</div>
+                    <div style="font-size:8px; opacity:0.5; margin-top:2px;">الوقت المتبقي</div>
+                </div>
+                <div style="width:1px; height:26px; background:rgba(255,255,255,0.15);"></div>
+                <div style="flex:1; text-align:center;">
+                    <div id="tx-nav-eta-dist" style="color:#f1c40f; font-size:17px; font-weight:900; line-height:1;">--</div>
+                    <div style="font-size:8px; opacity:0.5; margin-top:2px;">المسافة المتبقية</div>
+                </div>
+                <div style="width:1px; height:26px; background:rgba(255,255,255,0.15);"></div>
+                <div style="flex:1.3; text-align:center; min-width:0;">
+                    <div id="tx-nav-eta-arrive" style="color:#c39bd3; font-size:14px; font-weight:900; line-height:1;">--</div>
+                    <div style="font-size:8px; opacity:0.5; margin-top:2px;">وقت الوصول</div>
+                </div>
+            </div>
+        </div>
+        <!-- زر فتح دليل الطريق الكامل -->
+        <button onclick="txToggleRouteSteps()" style="position:absolute; top:calc(178px + env(safe-area-inset-top,0px)); left:12px; z-index:1200; background:#6c3483; border:none; color:#fff; border-radius:10px; padding:8px 12px; font-size:10px; font-weight:bold; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.5);"><i class="fas fa-list-ol"></i> دليل الطريق</button>
+        <!-- لوحة دليل الطريق الكامل (كل الخطوات) -->
+        <div id="tx-nav-steps-panel" style="display:none; position:absolute; top:0; right:0; bottom:0; width:82%; max-width:320px; background:#15041a; z-index:1300; padding:calc(14px + env(safe-area-inset-top,0px)) 12px 14px; overflow-y:auto; box-shadow:-6px 0 24px rgba(0,0,0,0.7);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                <h3 style="color:#f1c40f; font-size:14px; margin:0;"><i class="fas fa-route"></i> دليل الطريق</h3>
+                <button onclick="txToggleRouteSteps()" style="background:#6c3483; border:none; color:#fff; border-radius:8px; padding:6px 11px; font-size:11px; cursor:pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="tx-nav-steps-list"></div>
+        </div>
+        <!-- زر العودة إلى المسار (يظهر عند الانحراف) -->
+        <button id="tx-nav-back-route" onclick="txBackToRoute()" style="display:none; position:absolute; top:calc(178px + env(safe-area-inset-top,0px)); right:12px; z-index:1200; background:#e74c3c; border:none; color:#fff; border-radius:11px; padding:10px 14px; font-size:11px; font-weight:900; cursor:pointer; box-shadow:0 3px 12px rgba(0,0,0,0.5);"><i class="fas fa-route"></i> العودة للمسار</button>
+        <!-- زر إعادة التوسيط الدائري (يظهر فور تحريك الخريطة يدوياً مثل قوقل ماب) -->
+        <button id="tx-nav-recenter-fab" onclick="txRecenterNav()" style="display:none; position:absolute; bottom:200px; right:14px; z-index:1200; width:52px; height:52px; background:#fff; border:none; border-radius:50%; color:#6c3483; font-size:20px; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,0.45); align-items:center; justify-content:center;"><i class="fas fa-location-arrow"></i></button>
+        <!-- أزرار التكبير/التصغير (بنفسجية صلبة) -->
+        <div style="position:absolute; bottom:130px; left:12px; z-index:1200; display:flex; flex-direction:column; gap:6px;">
+            <button onclick="if(_txNavMap)_txNavMap.zoomIn()" style="width:42px; height:42px; background:#6c3483; border:none; color:#fff; border-radius:11px; font-size:18px; font-weight:900; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.5);">+</button>
+            <button onclick="if(_txNavMap)_txNavMap.zoomOut()" style="width:42px; height:42px; background:#6c3483; border:none; color:#fff; border-radius:11px; font-size:20px; font-weight:900; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.5);">−</button>
+            <button id="tx-nav-traffic-btn" onclick="txToggleTraffic()" title="حركة المرور" style="width:42px; height:42px; background:rgba(108,52,131,0.5); border:none; color:#fff; border-radius:11px; font-size:15px; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,0.5);"><i class="fas fa-traffic-light"></i></button>
+        </div>
+        <!-- شريط سفلي مدمج: الوجهة + أزرار (الوقت والمسافة انتقلا للأعلى) -->
+        <div style="position:absolute; bottom:0; left:0; right:0; z-index:1200; background:#15041a; border-top:2px solid #6c3483; padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px)); display:flex; align-items:center; gap:8px;">
+            <div id="tx-nav-dest-label" style="flex:1; min-width:0; color:#c39bd3; font-size:11px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">الوجهة 🏁</div>
+            <div id="tx-nav-eta" style="display:none;"></div>
+            <button id="tx-nav-voice-btn" onclick="txToggleNavVoice()" style="background:#6c3483; border:none; color:#fff; border-radius:11px; padding:11px 14px; font-size:13px; font-weight:bold; cursor:pointer;"><i class="fas fa-volume-up"></i></button>
+            <button onclick="txRecenterNav()" style="background:#6c3483; border:none; color:#fff; border-radius:11px; padding:11px 13px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-crosshairs"></i> توسيط</button>
+            <button onclick="txOpenExternalNav()" style="background:#6c3483; border:none; color:#fff; border-radius:11px; padding:11px 12px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-external-link-alt"></i> Google</button>
+        </div>
+    </div>
+    <!-- نهاية [TX-INAPP-NAV] -->
+    <!-- [TX-ASK] نافذة تأكيد داخل النظام (بديل نوافذ المتصفح) -->
+    <div id="txd-ask-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; align-items:center; justify-content:center; padding:20px;">
+        <div style="width:100%; max-width:270px; background:#160416; border:1.5px solid #f1c40f; border-radius:15px; padding:13px 12px; text-align:center;">
+            <div style="font-size:23px; margin-bottom:5px;" id="txd-ask-icon">❓</div>
+            <div style="font-size:10.5px; line-height:2; opacity:0.9; margin-bottom:10px;" id="txd-ask-msg">--</div>
+            <div style="display:flex; gap:7px;">
+                <button id="txd-ask-yes" style="flex:2; background:linear-gradient(135deg,#f1c40f,#d4af37); color:#000; border:none; border-radius:10px; padding:9px; font-size:10px; font-weight:900; cursor:pointer;">تأكيد</button>
+                <button onclick="document.getElementById('txd-ask-modal').style.display='none'" style="flex:1; background:transparent; color:#aaa; border:1px solid #555; border-radius:10px; padding:9px; font-size:9.5px; cursor:pointer;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+    <!-- [TX-REPORT] نافذة إبلاغ الإدارة من السائق -->
+    <div id="txd-report-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; align-items:center; justify-content:center; padding:20px;">
+        <div style="width:100%; max-width:290px; background:#160416; border:1.5px solid #e67e22; border-radius:15px; padding:13px 12px;">
+            <div style="text-align:center; font-size:21px; margin-bottom:4px;">🚨</div>
+            <div style="text-align:center; color:#e67e22; font-weight:900; font-size:11.5px; margin-bottom:8px;">إبلاغ الإدارة</div>
+            <textarea id="txd-report-text" rows="4" placeholder="اكتب بلاغك أو مشكلتك هنا... سيصل للإدارة فوراً" style="width:100%; background:rgba(255,255,255,0.06); border:1px solid #555; border-radius:10px; padding:8px; color:#fff; font-size:10px; box-sizing:border-box; font-family:inherit; resize:none;"></textarea>
+            <div style="display:flex; gap:7px; margin-top:9px;">
+                <button onclick="txdSendReport()" style="flex:2; background:linear-gradient(135deg,#e67e22,#d35400); color:#fff; border:none; border-radius:10px; padding:9px; font-size:10px; font-weight:900; cursor:pointer;"><i class="fas fa-paper-plane"></i> إرسال البلاغ</button>
+                <button onclick="document.getElementById('txd-report-modal').style.display='none'" style="flex:1; background:transparent; color:#aaa; border:1px solid #555; border-radius:10px; padding:9px; font-size:9.5px; cursor:pointer;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+    <!-- [TAXI-COMPLETE-MODAL] نافذة إنهاء الرحلة داخل النظام: تأكيد استلام المبلغ + كود التحقق -->
+    <div id="taxi-complete-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; align-items:center; justify-content:center; padding:18px;">
+        <div style="width:100%; max-width:272px; background:#160416; border:1.5px solid #f1c40f; border-radius:15px; padding:13px 12px; text-align:center; box-shadow:0 15px 50px rgba(0,0,0,0.7);">
+            <div style="font-size:25px; margin-bottom:4px;">🏁</div>
+            <h3 style="color:#f1c40f; font-size:12.5px; margin:0 0 8px;">إنهاء الرحلة</h3>
+            <!-- عبارة تأكيد استلام المبلغ حسب أجرة الرحلة -->
+            <div id="taxi-complete-fare-box" style="background:rgba(46,204,113,0.08); border:1.5px dashed #2ecc71; border-radius:10px; padding:7px 9px; margin-bottom:9px;">
+                <div style="font-size:9px; color:#2ecc71; font-weight:bold; line-height:1.8;">💰 تأكد من استلام مبلغ</div>
+                <div id="taxi-complete-fare-val" style="font-size:16px; font-weight:900; color:#2ecc71; letter-spacing:0.5px;">--</div>
+                <div style="font-size:7.5px; opacity:0.6;">من العميل قبل إنهاء الرحلة</div>
+            </div>
+            <div id="taxi-complete-code-wrap">
+                <div style="font-size:8.5px; opacity:0.75; margin-bottom:5px;">🔐 أدخل كود الإنهاء (اطلبه من العميل)</div>
+                <input type="tel" id="taxi-complete-code-input" inputmode="numeric" maxlength="4" placeholder="• • • •" style="width:120px; background:rgba(255,255,255,0.06); border:1.5px solid #f1c40f; border-radius:10px; padding:8px; color:#f1c40f; font-size:17px; font-weight:900; text-align:center; letter-spacing:7px; direction:ltr; box-sizing:border-box;">
+            </div>
+            <div style="display:flex; gap:6px; margin-top:10px;">
+                <button onclick="txConfirmCompleteRide()" style="flex:2; background:linear-gradient(135deg,#2ecc71,#27ae60); color:#fff; border:none; border-radius:10px; padding:9px 4px; font-size:10px; font-weight:900; cursor:pointer;"><i class="fas fa-check-circle"></i> استلمت المبلغ — إنهاء الرحلة</button>
+                <button onclick="document.getElementById('taxi-complete-modal').style.display='none'" style="flex:1; background:transparent; color:#aaa; border:1px solid #555; border-radius:10px; padding:9px 4px; font-size:9.5px; cursor:pointer;">إلغاء</button>
+            </div>
+        </div>
+    </div>
+    <!-- نهاية [TAXI-COMPLETE-MODAL] -->
     <!-- [TAXI-BLOCKED] صفحة "غير متاح للخدمة" — تظهر عند دخول قسم لا يخص دور السائق -->
     <div id="p-service-blocked" class="page" style="justify-content:center; align-items:center; text-align:center;">
         <div style="font-size:52px; margin-bottom:10px;">⛔</div>
@@ -1876,6 +1999,7 @@
             <div style="display:flex; gap:12px; justify-content:center; margin-top:5px; font-size:10px; font-weight:bold;">
                 <span style="color:#f1c40f;"><i class="fas fa-wallet"></i> رصيد التاكسي: <span id="taxi-my-balance-val">--</span></span>
                 <span style="color:#f1c40f;"><i class="fas fa-star"></i> تقييمي: <span id="taxi-my-rating-val">--</span></span>
+                <span style="color:#e67e22; cursor:pointer;" onclick="txdOpenReport()"><i class="fas fa-bullhorn"></i> إبلاغ الإدارة</span>
             </div>
         </div>
         <div class="refresh-progress-container" onclick="loadTaxiOrdersList()" style="border-color:#f1c40f;">
@@ -1908,10 +2032,12 @@
             <div style="background:rgba(241,196,15,0.07); border-radius:10px; padding:8px 10px; margin-bottom:8px; font-size:10.5px; line-height:1.6;" id="taxi-ride-details-box" ><i class="fas fa-sticky-note" style="color:#f1c40f;"></i> <b>تفاصيل العميل:</b> <span id="taxi-ride-details">--</span></div>
             <!-- [TAXI-FARE] أجرة الرحلة (تسعير ديناميكي من لوحة الإدارة) -->
             <div style="background:rgba(46,204,113,0.1); border:1px solid #2ecc71; border-radius:10px; padding:8px 10px; margin-bottom:8px; font-size:11px; line-height:1.6; display:flex; justify-content:space-between; align-items:center;"><span><i class="fas fa-coins" style="color:#2ecc71;"></i> <b>أجرة الرحلة:</b></span> <span id="taxi-ride-fare" style="color:#2ecc71; font-weight:900; font-size:13px;">--</span></div>
+            <!-- [TAXI-DIRECTIONS] زر الاتجاهات الذكي: وجهته تتبدل تلقائياً حسب حالة الرحلة -->
+            <button id="taxi-btn-directions" onclick="txOpenDirections()" style="width:100%; background:rgba(52,152,219,0.12); color:#3498db; border:1.5px solid #3498db; border-radius:12px; padding:10px; font-size:12px; font-weight:900; cursor:pointer; margin-bottom:7px;"><i class="fas fa-location-arrow"></i> <span id="taxi-btn-directions-label">الاتجاهات إلى العميل 🧭</span></button>
             <button id="taxi-btn-arrived" onclick="updateTaxiRideStatus('arrived')" style="width:100%; background:linear-gradient(135deg,#f1c40f,#d4af37); color:#000; border:none; border-radius:12px; padding:11px; font-size:13px; font-weight:900; cursor:pointer; margin-bottom:7px;"><i class="fas fa-map-marker-alt"></i> وصلت إلى موقع العميل</button>
             <button id="taxi-btn-started" onclick="updateTaxiRideStatus('started')" style="width:100%; display:none; background:linear-gradient(135deg,#3498db,#2980b9); color:#fff; border:none; border-radius:12px; padding:11px; font-size:13px; font-weight:900; cursor:pointer; margin-bottom:7px;"><i class="fas fa-road"></i> بدء الرحلة</button>
             <button id="taxi-btn-completed" onclick="updateTaxiRideStatus('completed')" style="width:100%; display:none; background:linear-gradient(135deg,#2ecc71,#27ae60); color:#fff; border:none; border-radius:12px; padding:11px; font-size:13px; font-weight:900; cursor:pointer; margin-bottom:7px;"><i class="fas fa-flag-checkered"></i> إنهاء الرحلة — وصل العميل</button>
-            <button onclick="driverCancelTaxiRide()" style="width:100%; background:transparent; color:#e74c3c; border:1px solid #e74c3c; border-radius:12px; padding:9px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-times-circle"></i> إلغاء الرحلة</button>
+            <button onclick="driverCancelTaxiRide()" style="width:100%; background:transparent; color:#e67e22; border:1px solid #e67e22; border-radius:12px; padding:9px; font-size:11px; font-weight:bold; cursor:pointer;"><i class="fas fa-headset"></i> التواصل مع الإدارة لإلغاء الرحلة</button>
         </div>
     </div>
     <!-- ===== نهاية [TAXI-PAGES] ===== -->
@@ -1926,6 +2052,7 @@
         <div class="tab-item" id="t-tamweel" onclick="navTamweel()" style="position:relative; display:none;"><i class="fas fa-coins"></i>التمويل<div id="tamweel-notif-dot" style="position:absolute; top:4px; right:10px; width:7px; height:7px; background:#e74c3c; border-radius:50%; display:none; animation:pulse 2s infinite;"></div></div>
         <!-- ===== [TAXI-TAB] تبويب التاكسي — يظهر فقط للسائقين المفعّلين من الإدارة ===== -->
         <div class="tab-item" id="t-taxi" onclick="navTaxi()" style="display:none; position:relative; color:#f1c40f;"><i class="fas fa-taxi"></i>تاكسي<div id="taxi-tab-dot" style="position:absolute; top:2px; right:8px; width:7px; height:7px; background:#e74c3c; border-radius:50%; display:none; animation:pulse 2s infinite;"></div></div>
+        <div class="tab-item" id="t-taxi-inbox" onclick="navTaxiInbox()" style="display:none; position:relative; color:#f1c40f;"><i class="fas fa-envelope"></i>البريد<div id="taxi-inbox-dot" style="position:absolute; top:2px; right:8px; min-width:15px; height:15px; padding:0 3px; background:#e74c3c; color:#fff; font-size:9px; font-weight:bold; border-radius:8px; display:none; align-items:center; justify-content:center; line-height:15px;">0</div></div>
         <!-- ===== نهاية [TAXI-TAB] ===== -->
         <div class="tab-item" id="t-profile" onclick="nav('p-profile')"><i class="fas fa-user-tie"></i>حسابي</div>
     </div>
@@ -2511,6 +2638,37 @@
     }
 
     async function initSystem() {
+        // [TAXI-SESSION-RESTORE] استعادة جلسة سائق التاكسي تلقائياً عند تحديث الصفحة (تذكّرني)
+        try {
+            const taxiSaved = localStorage.getItem('falcon_session');
+            if (taxiSaved) {
+                const td = JSON.parse(taxiSaved);
+                if (td && td._taxiOnly) {
+                    currentUserData = td;
+                    // إعادة بناء ملف السائق من قاعدة التاكسي ثم فتح تبويبه مباشرة
+                    setTimeout(async () => {
+                        try {
+                            const { data } = await _taxiDB.from('taxi_drivers').select('*').eq('driver_ref_id', String(td.id)).limit(1);
+                            if (data && data.length) {
+                                if (!data[0].taxi_enabled) { try { localStorage.removeItem('falcon_session'); } catch (e) {} location.reload(); return; }
+                                _taxiDriverProfile = data[0];
+                                currentUserData.activation_code = data[0].activation_code;
+                                currentUserData.profit_percent = data[0].commission_percent;
+                            }
+                        } catch (e) {}
+                        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                        const tabs = document.getElementById('main-tabs'); if (tabs) tabs.style.display = 'flex';
+                        const tTab = document.getElementById('t-taxi'); if (tTab) tTab.style.display = 'block';
+                        ['t-main', 't-inbox', 't-active', 't-history', 't-financing', 't-tamweel'].forEach(tid => { const el = document.getElementById(tid); if (el) el.style.display = 'none'; });
+                        try { subscribeTaxiDriverRealtime(); } catch (e) {}
+                        try { resumeActiveTaxiRide(); } catch (e) {}
+                        try { txStartInboxLive(); } catch (e) {}
+                        navTaxi();
+                    }, 300);
+                    return; // لا نكمل منطق دخول المندوب العادي
+                }
+            }
+        } catch (e) { console.warn('taxi session restore', e); }
         // [REMEMBER-ME] إذا لم يكن "تذكرني" مفعلاً وتم إعادة تشغيل التطبيق (session جديدة)، نحذف البيانات المحفوظة
         if (!window._sessionStarted) {
             window._sessionStarted = true;
@@ -3374,6 +3532,11 @@
     }
 
     function copyDriverChargeId() {
+        if (currentUserData && currentUserData._taxiOnly && window._txMyPublicId) {
+            try { navigator.clipboard.writeText(window._txMyPublicId); } catch (e) {}
+            siteNotify('تم نسخ الآيدي: ' + window._txMyPublicId + ' 📋');
+            return;
+        }
         if(!currentUserData) return;
         const id = 'SH-' + currentUserData.id.substring(0,8).toUpperCase();
         if(navigator.clipboard) {
@@ -7624,12 +7787,47 @@ if (typeof login === 'function') {
                 if (tTab) tTab.style.display = 'block';
                 subscribeTaxiDriverRealtime();
                 resumeActiveTaxiRide();
+                txStartInboxLive();
                 navTaxi();
                 return;
             }
         } catch (e) { console.error('taxi login error', e); }
         return _origLoginForTaxi.apply(this, arguments);
     };
+}
+
+// ===== [TAXI-MAIN-LOADERS-GUARD] حماية سائق التاكسي من محمّلات نظام الطلبات =====
+// سائق التاكسي معرفه رقم هاتف وليس uuid — استدعاء محمّلات نظام الطلبات بهويته
+// يسبب أخطاء مثل: invalid input syntax for type uuid (خطأ في الإقفال) ويكتب أصفاراً فوق بياناته.
+// لذلك تُعطَّل هذه المحمّلات تماماً لجلسات التاكسي فقط، وتبقى كما هي للمندوبين.
+['loadDailyClosingCard', 'executeDailyClosing', 'loadDailyClosingArchive', 'loadOrderHistory', 'updateWalletUI', 'loadNewEarningsUI'].forEach(function(fnName) {
+    try {
+        if (typeof window[fnName] === 'function') {
+            const _origFn = window[fnName];
+            window[fnName] = async function() {
+                if (currentUserData && currentUserData._taxiOnly) {
+                    if (fnName === 'executeDailyClosing') siteNotify("الإقفال اليومي خاص بنظام الطلبات — محفظة التاكسي تُدار من الإدارة 🚖");
+                    return; // لا استدعاء لقاعدة الطلبات بهوية تاكسي
+                }
+                return _origFn.apply(this, arguments);
+            };
+        }
+    } catch (e) {}
+});
+// إخفاء بطاقة الإقفال اليومي من محفظة سائق التاكسي (ميزة نظام الطلبات)
+function txHideDeliveryOnlyWalletBits() {
+    if (!currentUserData || !currentUserData._taxiOnly) return;
+    // استهداف دقيق: بطاقة الإقفال بمعرّفها إن وُجد، وإلا زر الإقفال نفسه فقط
+    // (الصعود للأب العام كان يخفي حاوية المحفظة كاملة = شاشة سوداء — ممنوع)
+    const card = document.getElementById('daily-closing-card') || document.getElementById('dc-card');
+    if (card) { card.style.display = 'none'; return; }
+    const btn = document.getElementById('btn-execute-closing');
+    if (btn) {
+        const p = btn.parentElement;
+        // نخفي الأب فقط إذا كان بطاقة الإقفال الصغيرة (يحوي عناصر dc- ولا يحوي رصيد المحفظة الرئيسي)
+        if (p && p.querySelector('#dc-wallet-now') && !p.querySelector('#wallet-prepaid-balance')) p.style.display = 'none';
+        else btn.style.display = 'none';
+    }
 }
 
 // ===== [TAXI-WALLET-JS] محفظة سائق التاكسي وحسابه الشخصي — نفس النظام المالي ببيانات التاكسي =====
@@ -7694,13 +7892,23 @@ async function txFillWalletTaxi() {
     if (!currentUserData || !currentUserData._taxiOnly) return;
     const ref = String((_taxiDriverProfile && _taxiDriverProfile.driver_ref_id) || currentUserData.id);
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+    txHideDeliveryOnlyWalletBits(); // إخفاء بطاقة الإقفال اليومي (خاصة بنظام الطلبات)
+    txShowTaxiPublicId(ref);        // عرض الآيدي الخاص الطويل الفريد لشحن المحفظة
+    // عرض آخر رصيد معروف فوراً (قبل الجلب) — فلا يظهر صفر أو فراغ أبداً أثناء التحميل
+    const cachedNow = txBalCacheGet();
+    if (cachedNow) {
+        const balEl0 = document.getElementById('wallet-prepaid-balance');
+        if (balEl0) { balEl0.innerText = cachedNow.balance.toLocaleString('ar-SY') + ' ل.س'; balEl0.style.color = cachedNow.balance > 0 ? '#2ecc71' : '#e74c3c'; }
+    }
     try {
-        const { data } = await _taxiDB.from('taxi_drivers').select('balance, commission_percent').eq('driver_ref_id', ref).limit(1);
+        const { data, error } = await _taxiDB.from('taxi_drivers').select('balance, commission_percent').eq('driver_ref_id', ref).limit(1);
+        if (error) throw error;
         const b = (data && data[0] && data[0].balance !== null && data[0].balance !== undefined) ? Number(data[0].balance) : 0;
         const balEl = document.getElementById('wallet-prepaid-balance');
         if (balEl) { balEl.innerText = b.toLocaleString('ar-SY') + ' ل.س'; balEl.style.color = b > 0 ? '#2ecc71' : '#e74c3c'; }
         let minBal = 0;
         try { const { data: st } = await _taxiDB.from('taxi_settings').select('min_driver_balance').eq('id', 1).limit(1); if (st && st[0] && st[0].min_driver_balance) minBal = Number(st[0].min_driver_balance); } catch (e) {}
+        txBalCacheSet(b, minBal); // حفظ آخر قراءة ناجحة — الرصيد ثابت عبر التحديث وإعادة التشغيل
         const warn = document.getElementById('wallet-balance-low-warning');
         if (warn) {
             const blocked = !(b > 0 && b >= minBal);
@@ -7726,8 +7934,17 @@ async function txFillWalletTaxi() {
         set('driver-earn-week-wallet', sum(week, net).toLocaleString('ar-SY') + ' ل.س');
         set('driver-earn-total-wallet', sum(rows, net).toLocaleString('ar-SY') + ' ل.س');
         set('driver-earn-count-wallet', rows.length);
-    } catch (e) { console.warn('taxi wallet fill', e); }
+    } catch (e) { console.warn('taxi wallet fill (الكاش معروض — لا تصفير)', e); }
 }
+// إعادة تعبئة دورية كل 4 ثوانٍ أثناء فتح المحفظة — تتغلب على أي محمّل أصلي يكتب أصفاراً فوق بياناتنا
+setInterval(function() {
+    try {
+        if (currentUserData && currentUserData._taxiOnly) {
+            const pw = document.getElementById('p-wallet');
+            if (pw && pw.classList.contains('active')) txFillWalletTaxi();
+        }
+    } catch (e) {}
+}, 4000);
 // تعبئة الحساب الشخصي الأصلي ببيانات التاكسي (صورة + اسم + تقييم + أرباح)
 async function txFillProfileTaxi() {
     if (!currentUserData || !currentUserData._taxiOnly) return;
@@ -7765,6 +7982,100 @@ async function txFillProfileTaxi() {
         if (cntEl) cntEl.innerText = rows.length;
     } catch (e) { console.warn('taxi profile fill', e); }
 }
+// [TAXI-PUBLIC-ID] آيدي خاص طويل فريد لكل مندوب تاكسي — مستقل عن كود التشغيل SH
+async function txShowTaxiPublicId(ref) {
+    const el = document.getElementById('wallet-driver-charge-id');
+    if (!el) return;
+    try {
+        let { data } = await _taxiDB.from('taxi_drivers').select('taxi_public_id').eq('driver_ref_id', ref).limit(1);
+        let pid = (data && data[0] && data[0].taxi_public_id) ? data[0].taxi_public_id : null;
+        if (!pid) {
+            // توليد آيدي طويل فريد (12 خانة) والتحقق من عدم التكرار
+            for (let i = 0; i < 12; i++) {
+                const cand = 'TX' + Date.now().toString().slice(-7) + Math.floor(100 + Math.random() * 900);
+                const chk = await _taxiDB.from('taxi_drivers').select('id').eq('taxi_public_id', cand).limit(1);
+                if (!chk.data || !chk.data.length) { pid = cand; break; }
+            }
+            if (pid) { try { await _taxiDB.from('taxi_drivers').update({ taxi_public_id: pid }).eq('driver_ref_id', ref); } catch (e) {} }
+        }
+        if (pid) {
+            el.innerText = pid;
+            el.style.letterSpacing = '1px';
+            const hint = el.parentElement && el.parentElement.parentElement ? el.parentElement.parentElement.querySelector('div[style*="margin-top"]') : null;
+            window._txMyPublicId = pid;
+        }
+    } catch (e) { console.warn('taxi public id', e); }
+}
+// [TAXI-INBOX-JS] صندوق بريد سائق التاكسي
+function navTaxiInbox() {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('p-taxi-inbox').classList.add('active');
+    document.querySelectorAll('.tab-item').forEach(x => x.classList.remove('active'));
+    const t = document.getElementById('t-taxi-inbox'); if (t) t.classList.add('active');
+    const tabs = document.getElementById('main-tabs'); if (tabs) tabs.style.display = 'flex';
+    loadTaxiDriverInbox();
+}
+function _txInboxRef() { return String((_taxiDriverProfile && _taxiDriverProfile.driver_ref_id) || (currentUserData && currentUserData.id) || ''); }
+async function loadTaxiDriverInbox() {
+    const box = document.getElementById('taxi-inbox-msgs');
+    if (!box) return;
+    const ref = _txInboxRef();
+    try {
+        const { data } = await _taxiDB.from('taxi_notifications').select('*').eq('target', 'driver').eq('target_id', ref).order('created_at', { ascending: false }).limit(60);
+        const rows = data || [];
+        if (!rows.length) { box.innerHTML = '<div style="text-align:center; opacity:0.5; padding:24px;">لا رسائل بعد 📭</div>'; updateTaxiInboxBadge(0); return; }
+        const unread = rows.filter(n => !n.is_read).length;
+        updateTaxiInboxBadge(unread);
+        box.innerHTML = rows.map(n => {
+            const t = n.title || '';
+            const icon = t.indexOf('شحن') > -1 ? '💰' : t.indexOf('خصم') > -1 ? '➖' : t.indexOf('تسوية') > -1 ? '⚖️' : '📨';
+            return `<div onclick="taxiInboxOpenMsg('${escTaxiD(String(n.id))}')" style="background:${n.is_read ? 'rgba(255,255,255,0.03)' : 'rgba(241,196,15,0.07)'}; border:1px solid ${n.is_read ? 'rgba(255,255,255,0.08)' : 'rgba(241,196,15,0.4)'}; border-radius:12px; padding:11px 12px; margin-bottom:8px; cursor:pointer;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:19px;">${icon}</span>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:bold; color:#f1c40f; font-size:12px;">${escTaxiD(t)} ${!n.is_read ? '<span style="background:#e74c3c; color:#fff; border-radius:6px; padding:0 6px; font-size:8px;">جديد</span>' : ''}</div>
+                        <div style="font-size:11px; opacity:0.85; margin-top:3px; line-height:1.7;">${escTaxiD(n.body || '')}</div>
+                        <div style="font-size:8.5px; opacity:0.4; margin-top:3px;">${new Date(n.created_at).toLocaleString('ar-SY')}</div>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch (e) { box.innerHTML = '<div style="text-align:center; color:#e74c3c; padding:20px;">تعذر التحميل</div>'; }
+}
+async function taxiInboxOpenMsg(id) {
+    try { await _taxiDB.from('taxi_notifications').update({ is_read: true }).eq('id', id); loadTaxiDriverInbox(); } catch (e) {}
+}
+async function taxiInboxReadAllDriver() {
+    try { await _taxiDB.from('taxi_notifications').update({ is_read: true }).eq('target', 'driver').eq('target_id', _txInboxRef()).eq('is_read', false); loadTaxiDriverInbox(); siteNotify('تمت قراءة كل الرسائل ✅'); } catch (e) {}
+}
+function updateTaxiInboxBadge(n) {
+    const dot = document.getElementById('taxi-inbox-dot');
+    if (dot) { dot.innerText = n; dot.style.display = n > 0 ? 'flex' : 'none'; }
+}
+async function refreshTaxiInboxBadge() {
+    const ref = _txInboxRef(); if (!ref) return;
+    try {
+        const { count } = await _taxiDB.from('taxi_notifications').select('id', { count: 'exact', head: true }).eq('target', 'driver').eq('target_id', ref).eq('is_read', false);
+        updateTaxiInboxBadge(count || 0);
+    } catch (e) {}
+}
+let _txInboxSub = false;
+function txStartInboxLive() {
+    const tIn = document.getElementById('t-taxi-inbox'); if (tIn) tIn.style.display = 'block';
+    refreshTaxiInboxBadge();
+    if (!window._txInboxInterval) window._txInboxInterval = setInterval(refreshTaxiInboxBadge, 20000);
+    if (!_txInboxSub) {
+        _txInboxSub = true;
+        try {
+            _taxiDB.channel('tx_driver_inbox_' + _txInboxRef())
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'taxi_notifications', filter: 'target_id=eq.' + _txInboxRef() }, payload => {
+                    const n = payload.new || {};
+                    if (n.target === 'driver') { siteNotify('📬 ' + (n.title || 'رسالة جديدة') + ' — ' + (n.body || '').substring(0, 50)); refreshTaxiInboxBadge(); }
+                }).subscribe();
+        } catch (e) {}
+    }
+}
+
 function txTaxiLogout() {
     if (typeof _doLogout === 'function') _doLogout();
     else { try { localStorage.removeItem('falcon_session'); } catch (e) {} location.reload(); }
@@ -7910,6 +8221,14 @@ function txDriverTypeMatch(order) {
 // ===== [TAXI-STRICT-BALANCE] فحص الرصيد الصارم — مثل نظام مندوبي الطلبات تماماً =====
 // رصيد 0 أو أقل من حد الإدارة أو غير معروف = محجوب عن استقبال الرحلات حتى يتم الشحن من الإدارة
 let _txBalGate = { ok: false, balance: 0, min: 0, checked: false };
+// [TAXI-WALLET-STABLE] كاش آخر رصيد معروف لكل سائق — الرصيد ثابت لا يختفي ولا يتصفر عند أي خلل اتصال
+function txBalCacheKey() { return 'tx_bal_' + String((_taxiDriverProfile && _taxiDriverProfile.driver_ref_id) || (currentUserData && currentUserData.id) || ''); }
+function txBalCacheGet() {
+    try { const v = JSON.parse(localStorage.getItem(txBalCacheKey()) || 'null'); return (v && typeof v.balance === 'number') ? v : null; } catch (e) { return null; }
+}
+function txBalCacheSet(balance, min) {
+    try { localStorage.setItem(txBalCacheKey(), JSON.stringify({ balance: balance, min: min, t: Date.now() })); } catch (e) {}
+}
 async function txCheckBalanceGate() {
     try {
         const ref = String(_taxiDriverProfile.driver_ref_id);
@@ -7923,13 +8242,21 @@ async function txCheckBalanceGate() {
             const { data: st } = await _taxiDB.from('taxi_settings').select('min_driver_balance').eq('id', 1).limit(1);
             if (st && st.length && st[0].min_driver_balance !== null && st[0].min_driver_balance !== undefined) minBal = Number(st[0].min_driver_balance) || 0;
         } catch (e) {}
-        _txBalGate = { ok: (b > 0 && b >= minBal), balance: b, min: minBal, checked: true };
+        _txBalGate = { ok: (b > 0 && b >= minBal), balance: b, min: minBal, checked: true, cached: false };
+        txBalCacheSet(b, minBal); // حفظ آخر قراءة ناجحة
     } catch (e) {
-        // تعذر التحقق = حجب احترازي (صرامة كاملة)
-        _txBalGate = { ok: false, balance: 0, min: 0, checked: true };
+        // تعذرت القراءة (خلل اتصال مؤقت): نعرض آخر رصيد معروف من الكاش بدل التصفير
+        const cached = txBalCacheGet();
+        if (cached) {
+            _taxiDriverProfile.balance = cached.balance;
+            _txBalGate = { ok: (cached.balance > 0 && cached.balance >= (cached.min || 0)), balance: cached.balance, min: cached.min || 0, checked: true, cached: true };
+        } else {
+            // لا كاش إطلاقاً (أول استخدام) = حجب احترازي فقط دون ادعاء أن الرصيد صفر
+            _txBalGate = { ok: false, balance: 0, min: 0, checked: true, cached: false, unknown: true };
+        }
     }
     const balEl = document.getElementById('taxi-my-balance-val');
-    if (balEl) balEl.innerText = _txBalGate.balance.toLocaleString('ar-SY') + ' ل.س' + (_txBalGate.ok ? '' : ' ⛔');
+    if (balEl) balEl.innerText = _txBalGate.unknown ? 'جاري التحقق...' : (_txBalGate.balance.toLocaleString('ar-SY') + ' ل.س' + (_txBalGate.ok ? '' : ' ⛔'));
     return _txBalGate;
 }
 function txBlockedPanelHTML() {
@@ -8148,6 +8475,7 @@ async function previewTaxiOrderRoute(orderId) {
         document.getElementById('taxi-ride-fare').innerText = o.fare ? (Number(o.fare).toLocaleString('ar-SY') + ' ل.س' + (o.distance_km ? ' — ' + o.distance_km + ' كم' : '')) : 'غير محددة';
         // إخفاء أزرار الحالة وإظهار شريط القبول/الرفض
         ['taxi-btn-arrived', 'taxi-btn-started', 'taxi-btn-completed'].forEach(id => { const b = document.getElementById(id); if (b) b.style.display = 'none'; });
+        const dirBtn = document.getElementById('taxi-btn-directions'); if (dirBtn) dirBtn.style.display = 'none'; // لا اتجاهات في وضع المعاينة
         const bar = document.getElementById('taxi-preview-bar');
         bar.style.display = 'flex';
         document.getElementById('taxi-preview-accept').onclick = async function() { exitTaxiPreview(false, true); await acceptTaxiOrder(o.id); };
@@ -8160,6 +8488,485 @@ function exitTaxiPreview(reject, silent) {
     _taxiActiveRide = _taxiPreviewBackup; _taxiPreviewBackup = null;
     if (reject && previewed) { rejectTaxiOrderLocal(previewed.id); }
     if (!silent) navTaxi();
+}
+
+// ===== [TAXI-DIRECTIONS-JS] نظام الاتجاهات الذكي — يتبدل تلقائياً حسب حالة الرحلة =====
+// وجهة الملاحة حسب حالة الرحلة
+function txNavTarget() {
+    const o = _taxiActiveRide; if (!o) return null;
+    if (o.status === 'accepted') return { lat: o.pickup_lat, lng: o.pickup_lng, label: 'موقع العميل 📍' };
+    return { lat: o.dest_lat, lng: o.dest_lng, label: 'الوجهة النهائية 🏁' };
+}
+// زر الاتجاهات → يفتح الملاحة المدمجة داخل التطبيق
+function txOpenDirections() {
+    if (!_taxiActiveRide) { siteNotify("لا توجد رحلة نشطة 🚖"); return; }
+    const t = txNavTarget();
+    if (!t || !t.lat || !t.lng) { siteNotify("إحداثيات الوجهة غير متوفرة في هذا الطلب"); return; }
+    txStartInAppNav(t);
+}
+// فتح خرائط Google خارجياً (زر احتياطي داخل شاشة الملاحة)
+function txOpenExternalNav() {
+    const t = txNavTarget();
+    if (!t || !t.lat || !t.lng) { siteNotify("الوجهة غير متوفرة"); return; }
+    const ua = navigator.userAgent || '';
+    const universal = `https://www.google.com/maps/dir/?api=1&destination=${t.lat},${t.lng}&travelmode=driving&dir_action=navigate`;
+    let opened = false;
+    try {
+        if (/android/i.test(ua)) { window.location.href = `google.navigation:q=${t.lat},${t.lng}&mode=d`; opened = true; }
+        else if (/iphone|ipad|ipod/i.test(ua)) { window.location.href = `comgooglemaps://?daddr=${t.lat},${t.lng}&directionsmode=driving`; opened = true; }
+    } catch (e) {}
+    setTimeout(() => { if (!opened || !document.hidden) { try { window.open(universal, '_blank'); } catch (e) { window.location.href = universal; } } }, opened ? 1500 : 0);
+}
+
+// ===== [TX-INAPP-NAV-JS] الملاحة المدمجة داخل التطبيق =====
+let _txNavMap = null, _txNavRouteLn = null, _txNavRouteOutline = null, _txNavMeMk = null, _txNavDestMk = null;
+let _txNavWatch = null, _txNavSteps = [], _txNavTarget = null, _txNavFollow = true, _txNavLastRoute = 0;
+function txStartInAppNav(target) {
+    // ضمان أن شاشة الملاحة داخل إطار التطبيق بمقاسه (لا تخرج للمتصفح)
+    try {
+        const shell = document.querySelector('.app-shell');
+        const scrEl = document.getElementById('tx-nav-screen');
+        if (shell && scrEl && scrEl.parentElement !== shell) shell.appendChild(scrEl);
+    } catch (e) {}
+    _txNavTarget = target;
+    document.getElementById('tx-nav-dest-label').innerText = target.label;
+    const scr = document.getElementById('tx-nav-screen');
+    scr.style.display = 'flex';
+    txInitVoice(); _txNavLastSpoken = '';
+    ['tx-nav-eta-min', 'tx-nav-eta-dist', 'tx-nav-eta-arrive'].forEach(id => { const e = document.getElementById(id); if (e) e.innerText = '...'; });
+    txSpeak('بدأت الملاحة إلى ' + (target.label.indexOf('العميل') > -1 ? 'موقع العميل' : 'الوجهة'));
+    // محاولة فورية لرسم المسار من آخر موقع معروف دون انتظار أول نبضة GPS
+    setTimeout(function() {
+        const last = (window._lastKnownLat && window._lastKnownLng) ? [window._lastKnownLat, window._lastKnownLng] : null;
+        if (last) { _txNavLastRoute = 0; txNavFetchRoute(last, [target.lat, target.lng]); }
+    }, 400);
+    setTimeout(() => {
+        if (!_txNavMap) {
+            _txNavMap = L.map('tx-nav-map', { zoomControl: false, attributionControl: false, zoomAnimation: true, fadeAnimation: true, markerZoomAnimation: true, inertia: true, inertiaDeceleration: 2500, zoomSnap: 0.25, wheelPxPerZoomLevel: 80 }).setView([target.lat, target.lng], 16);
+            // خريطة قوقل بالعربية مع إبراز أسماء الأماكن والطرق (lyrs=m شاملة الأسماء)
+            L.tileLayer('https://{s}.google.com/vt/lyrs=m&hl=ar&gl=SA&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }).addTo(_txNavMap);
+            // طبقة حركة المرور (تظهر الازدحام بالألوان فوق الطرق)
+            _txTrafficLayer = L.tileLayer('https://{s}.google.com/vt/lyrs=h,traffic&hl=ar&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], opacity: 0.85 });
+            if (_txTrafficOn) _txTrafficLayer.addTo(_txNavMap);
+            _txNavMap.on('dragstart', () => {
+                _txNavFollow = false;
+                const fab = document.getElementById('tx-nav-recenter-fab');
+                if (fab) fab.style.display = 'flex';
+            });
+        } else { _txNavMap.invalidateSize(); }
+        // علامة الوجهة
+        const destPin = '<div style="font-size:32px; filter:drop-shadow(0 2px 3px rgba(0,0,0,0.4)); line-height:1;">📍</div>';
+        if (_txNavDestMk) _txNavDestMk.setLatLng([target.lat, target.lng]);
+        else _txNavDestMk = L.marker([target.lat, target.lng], { icon: L.divIcon({ html: destPin, className: '', iconSize: [32, 32], iconAnchor: [16, 30] }) }).addTo(_txNavMap);
+        _txNavFollow = true;
+        // [انطلاق فوري] خط مبدئي مستقيم + تقدير سريع فور الفتح (قبل وصول OSRM والـ GPS)
+        const startPt = (window._lastKnownLat && window._lastKnownLng) ? [window._lastKnownLat, window._lastKnownLng] : ((_taxiActiveRide && _taxiActiveRide.pickup_lat) ? [_taxiActiveRide.pickup_lat, _taxiActiveRide.pickup_lng] : null);
+        // [علامة السيارة الفورية] إظهار السيارة فوراً من الموقع المعروف (قبل أول نبضة GPS)
+        if (startPt) {
+            if (!_txNavMeMk) {
+                _txNavMeMk = L.marker(startPt, { icon: txNavCarIcon(_txNavLastHeading || 0), zIndexOffset: 2000 }).addTo(_txNavMap);
+                _txNavRenderHeading = _txNavLastHeading || 0;
+                _txNavLastPos = startPt;
+            } else _txNavMeMk.setLatLng(startPt);
+            _txNavMap.setView(startPt, 17);
+        }
+        if (startPt) {
+            const straight = [startPt, [target.lat, target.lng]];
+            if (_txNavRouteLn) { _txNavRouteLn.setLatLngs(straight); if (_txNavRouteOutline) _txNavRouteOutline.setLatLngs(straight); }
+            else {
+                _txNavRouteOutline = L.polyline(straight, { color: '#3b1a52', weight: 12, opacity: 0.6, lineJoin: 'round', lineCap: 'round' }).addTo(_txNavMap);
+                _txNavRouteLn = L.polyline(straight, { color: '#8e44ad', weight: 7, opacity: 0.7, dashArray: '10,8', lineJoin: 'round', lineCap: 'round' }).addTo(_txNavMap);
+            }
+            _txNavRouteCoords = straight;
+            // تقدير فوري بخط الطول الجوي
+            const dM = txNavHaversine(startPt[0], startPt[1], target.lat, target.lng);
+            const min0 = Math.max(1, Math.round((dM / 8.3) / 60));
+            const setT0 = (id, v) => { const e = document.getElementById(id); if (e) e.innerText = v; };
+            setT0('tx-nav-eta-min', min0 + ' د');
+            setT0('tx-nav-eta-dist', dM >= 1000 ? (dM / 1000).toFixed(1) + ' كم' : Math.round(dM / 10) * 10 + ' م');
+            const arr0 = new Date(Date.now() + (dM / 8.3) * 1000);
+            setT0('tx-nav-eta-arrive', ((arr0.getHours() % 12) || 12) + ':' + String(arr0.getMinutes()).padStart(2, '0') + (arr0.getHours() < 12 ? ' ص' : ' م'));
+            document.getElementById('tx-nav-instruction').innerText = 'انطلق نحو ' + (target.label.indexOf('العميل') > -1 ? 'العميل' : 'الوجهة');
+            // مسار حقيقي فوراً
+            _txNavLastRoute = 0; txNavFetchRoute(startPt, [target.lat, target.lng]);
+        }
+        // بدء تتبع موقع السائق بدقة عالية (مراقب مخصص للملاحة)
+        if (navigator.geolocation && _txNavWatch === null) {
+            _txNavWatch = navigator.geolocation.watchPosition(txNavOnPosition, e => console.warn('nav gps', e), { enableHighAccuracy: true, maximumAge: 1000, timeout: 20000 });
+            // نبضة أولى فورية لتحديد السيارة بسرعة
+            navigator.geolocation.getCurrentPosition(txNavOnPosition, () => {}, { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 });
+        }
+    }, 250);
+}
+function txCloseInAppNav() {
+    document.getElementById('tx-nav-screen').style.display = 'none';
+    const bb = document.getElementById('tx-nav-back-route'); if (bb) bb.style.display = 'none';
+    if (_txNavWatch !== null) { try { navigator.geolocation.clearWatch(_txNavWatch); } catch (e) {} _txNavWatch = null; }
+    try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {}
+}
+function txRecenterNav() {
+    _txNavFollow = true;
+    const fab = document.getElementById('tx-nav-recenter-fab');
+    if (fab) fab.style.display = 'none';
+    if (_txNavMap && _txNavMeMk) _txNavMap.setView(_txNavMeMk.getLatLng(), 17);
+}
+// العودة إلى المسار: توسيط على السيارة + إعادة حساب المسار فوراً من الموقع الحالي
+function txBackToRoute() {
+    if (!_txNavMeMk || !_txNavTarget) return;
+    _txNavFollow = true;
+    const me = _txNavMeMk.getLatLng();
+    _txNavMap.setView(me, 17);
+    _txNavLastRoute = 0; // يفرض إعادة حساب فوري في الدورة القادمة
+    txNavFetchRoute([me.lat, me.lng], [_txNavTarget.lat, _txNavTarget.lng]);
+    _txNavLastSpoken = ''; txSpeak('جارٍ إعادتك إلى المسار');
+    siteNotify('جارٍ إعادة حساب المسار من موقعك الحالي 🧭');
+}
+// [TX-SMOOTH] حركة انسيابية للسيارة + اتجاهها + طبقة المرور
+let _txNavLastPos = null, _txNavLastHeading = 0, _txNavRenderHeading = 0, _txNavInterval = 0, _txTrafficLayer = null, _txTrafficOn = false, _txAnimReq = null;
+function txNavBearing(la1, lo1, la2, lo2) {
+    const t = x => x * Math.PI / 180, d = x => x * 180 / Math.PI;
+    const y = Math.sin(t(lo2 - lo1)) * Math.cos(t(la2));
+    const x = Math.cos(t(la1)) * Math.sin(t(la2)) - Math.sin(t(la1)) * Math.cos(t(la2)) * Math.cos(t(lo2 - lo1));
+    return (d(Math.atan2(y, x)) + 360) % 360;
+}
+// أيقونة السيارة/الموقع الواضحة (سهم ملاحة بنفسجي بارز لا يختفي)
+function txNavCarIcon(deg) {
+    return L.divIcon({
+        html: `<div style="width:38px; height:38px; position:relative;">
+            <div style="position:absolute; inset:0; background:rgba(108,52,131,0.25); border-radius:50%; animation:txPulseNav 1.6s infinite;"></div>
+            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(${deg}deg); transition:transform 0.4s linear; width:30px; height:30px; background:#6c3483; border:2.5px solid #fff; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.5);">
+                <span style="color:#fff; font-size:16px; line-height:1;">▲</span>
+            </div>
+        </div>`,
+        className: '', iconSize: [38, 38], iconAnchor: [19, 19]
+    });
+}
+// تنعيم زاوية الدوران (أقصر مسار دائري بين زاويتين)
+function txLerpAngle(a, b, t) {
+    let diff = ((b - a + 540) % 360) - 180;
+    return (a + diff * t + 360) % 360;
+}
+// انتقال متصل وسلس جداً للسيارة + الخريطة + الدوران معاً (60 إطار/ثانية)
+function txAnimateMarker(marker, to, follow) {
+    if (_txAnimReq) cancelAnimationFrame(_txAnimReq);
+    const from = marker.getLatLng();
+    const fromHeading = _txNavRenderHeading;
+    const toHeading = _txNavLastHeading || fromHeading;
+    const fromCenter = (follow && _txNavMap) ? _txNavMap.getCenter() : null;
+    // مدة الحركة = الفاصل الفعلي بين تحديثين (محصورة 500–2500مس) فتطابق حركة السيارة الواقعية
+    let dur = _txNavInterval ? Math.max(500, Math.min(2500, _txNavInterval)) : 1000;
+    const start = performance.now();
+    function ease(p) { return p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; } // easeInOutQuad
+    function frame(now) {
+        const raw = Math.min(1, (now - start) / dur);
+        const p = ease(raw);
+        const lat = from.lat + (to[0] - from.lat) * p;
+        const lng = from.lng + (to[1] - from.lng) * p;
+        marker.setLatLng([lat, lng]);
+        // دوران سلس لسهم السيارة (الدائرة الداخلية)
+        _txNavRenderHeading = txLerpAngle(fromHeading, toHeading, p);
+        const el = marker.getElement();
+        if (el) { const inner = el.querySelector('div > div:last-child'); if (inner) inner.style.transform = 'translate(-50%,-50%) rotate(' + _txNavRenderHeading + 'deg)'; }
+        // متابعة الخريطة بنفس السلاسة (بدون رجّة)
+        if (fromCenter && _txNavFollow) {
+            _txNavMap.setView([fromCenter.lat + (lat - fromCenter.lat) * p, fromCenter.lng + (lng - fromCenter.lng) * p], _txNavMap.getZoom(), { animate: false });
+        }
+        if (raw < 1) _txAnimReq = requestAnimationFrame(frame);
+    }
+    _txAnimReq = requestAnimationFrame(frame);
+}
+function txToggleTraffic() {
+    if (!_txNavMap || !_txTrafficLayer) return;
+    _txTrafficOn = !_txTrafficOn;
+    const btn = document.getElementById('tx-nav-traffic-btn');
+    if (_txTrafficOn) { _txTrafficLayer.addTo(_txNavMap); if (btn) { btn.style.background = 'var(--purple,#6c3483)'; btn.style.color = '#fff'; } }
+    else { _txNavMap.removeLayer(_txTrafficLayer); if (btn) { btn.style.background = 'rgba(108,52,131,0.25)'; btn.style.color = '#c39bd3'; } }
+}
+
+// [TX-VOICE] التنبيهات الصوتية بالعربية (Web Speech API)
+let _txNavVoiceOn = true, _txNavLastSpoken = '', _txNavArVoice = null;
+function txInitVoice() {
+    if (!('speechSynthesis' in window)) return;
+    const pick = () => {
+        const vs = speechSynthesis.getVoices();
+        _txNavArVoice = vs.find(v => /ar/i.test(v.lang)) || null;
+    };
+    pick();
+    if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = pick;
+}
+function txSpeak(text) {
+    if (!_txNavVoiceOn || !('speechSynthesis' in window) || !text) return;
+    if (text === _txNavLastSpoken) return; // لا نكرر نفس التعليمة
+    _txNavLastSpoken = text;
+    try {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'ar-SA'; u.rate = 0.95; u.pitch = 1;
+        if (_txNavArVoice) u.voice = _txNavArVoice;
+        speechSynthesis.speak(u);
+    } catch (e) {}
+}
+function txToggleNavVoice() {
+    _txNavVoiceOn = !_txNavVoiceOn;
+    const btn = document.getElementById('tx-nav-voice-btn');
+    if (_txNavVoiceOn) {
+        btn.style.background = 'rgba(46,204,113,0.2)'; btn.style.borderColor = '#2ecc71'; btn.style.color = '#2ecc71';
+        btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+        _txNavLastSpoken = ''; txSpeak('الإرشاد الصوتي مُفعّل');
+    } else {
+        try { speechSynthesis.cancel(); } catch (e) {}
+        btn.style.background = 'rgba(231,76,60,0.15)'; btn.style.borderColor = '#e74c3c'; btn.style.color = '#e74c3c';
+        btn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+    }
+}
+
+function txNavOnPosition(pos) {
+    if (!_txNavMap) return;
+    const me = [pos.coords.latitude, pos.coords.longitude];
+    const acc = pos.coords.accuracy || 999;
+    // [فلترة الدقة] تجاهل القراءات ضعيفة الدقة (>80م) إن توفر موقع سابق جيد — تتبع دقيق فقط
+    if (acc > 80 && _txNavLastPos && _txNavLastAcc && _txNavLastAcc <= 80) return;
+    // [فلترة القفزات] تجاهل القفزة غير الواقعية (سرعة >55 م/ث ≈ 200كم/س = خطأ GPS)
+    if (_txNavLastPos && _txNavLastT) {
+        const jump = txNavHaversine(_txNavLastPos[0], _txNavLastPos[1], me[0], me[1]);
+        const dt = (Date.now() - _txNavLastT) / 1000;
+        if (dt > 0 && dt < 30 && (jump / dt) > 55 && jump > 120) return;
+    }
+    _txNavLastAcc = acc;
+    // [ETA دقيق] سرعة السائق الحية (م/ث) — من GPS أو محسوبة من آخر موقع وزمنه
+    const nowT = Date.now();
+    let speed = (pos.coords.speed !== null && !isNaN(pos.coords.speed) && pos.coords.speed >= 0) ? pos.coords.speed : null;
+    if (speed === null && _txNavLastPos && _txNavLastT) {
+        const dM = txNavHaversine(_txNavLastPos[0], _txNavLastPos[1], me[0], me[1]);
+        const dT = (nowT - _txNavLastT) / 1000;
+        if (dT > 0) speed = dM / dT;
+    }
+    // متوسط متحرك للسرعة (تنعيم لتفادي القفزات)
+    if (speed !== null && speed >= 0) {
+        _txNavSpeedAvg = _txNavSpeedAvg ? (_txNavSpeedAvg * 0.7 + speed * 0.3) : speed;
+    }
+    if (_txNavLastT) _txNavInterval = nowT - _txNavLastT;
+    _txNavLastT = nowT;
+    txNavUpdateLiveETA(me);
+    // اتجاه السيارة (من بيانات GPS أو محسوب من آخر موقع)
+    let heading = (pos.coords.heading !== null && !isNaN(pos.coords.heading)) ? pos.coords.heading : _txNavLastHeading;
+    if ((heading === null || isNaN(heading)) && _txNavLastPos) {
+        heading = txNavBearing(_txNavLastPos[0], _txNavLastPos[1], me[0], me[1]);
+    }
+    if (heading !== null && !isNaN(heading)) _txNavLastHeading = heading;
+    // أيقونة سيارة تدور حسب الاتجاه (حركة واقعية سلسة جداً)
+    if (_txNavMeMk) {
+        txAnimateMarker(_txNavMeMk, me, true); // السيارة + الخريطة + الدوران معاً بسلاسة
+    } else {
+        _txNavMeMk = L.marker(me, { icon: txNavCarIcon(_txNavLastHeading || 0), zIndexOffset: 2000 }).addTo(_txNavMap);
+        _txNavRenderHeading = _txNavLastHeading || 0;
+        if (_txNavFollow) _txNavMap.setView(me, 18);
+    }
+    _txNavLastPos = me;
+    // [Re-routing] كشف الانحراف عن المسار → إعادة توجيه فورية
+    let offRoute = false;
+    if (_txNavRouteLn) {
+        try {
+            const pts = _txNavRouteLn.getLatLngs();
+            let minD = Infinity;
+            const step = Math.max(1, Math.floor(pts.length / 150));
+            for (let i = 0; i < pts.length; i += step) {
+                const d = txNavHaversine(me[0], me[1], pts[i].lat, pts[i].lng);
+                if (d < minD) minD = d;
+            }
+            offRoute = minD > 60; // أبعد من 60م عن المسار = انحراف
+        } catch (e) {}
+    }
+    // زر العودة للمسار يظهر عند الانحراف فقط
+    const backBtn = document.getElementById('tx-nav-back-route');
+    if (backBtn) backBtn.style.display = offRoute ? 'block' : 'none';
+    const due = Date.now() - _txNavLastRoute > (offRoute ? 2500 : 7000);
+    if (!_txNavRouteLn || due) {
+        _txNavLastRoute = Date.now();
+        if (offRoute) { txSpeak('جارٍ إعادة حساب المسار'); _txNavLastSpoken = ''; }
+        txNavFetchRoute(me, [_txNavTarget.lat, _txNavTarget.lng]);
+    }
+    txNavUpdateInstruction(me);
+}
+// [ETA] حساب الوقت المتبقي بدقة من المسافة المتبقية على المسار + السرعة الحية
+let _txNavSpeedAvg = 0, _txNavLastT = 0, _txNavLastAcc = 999, _txNavRouteCoords = [];
+function txNavRemainingMeters(me) {
+    if (!_txNavRouteCoords.length) return null;
+    // أقرب نقطة على المسار ثم جمع المسافة من تلك النقطة حتى النهاية
+    let nearI = 0, nearD = Infinity;
+    for (let i = 0; i < _txNavRouteCoords.length; i++) {
+        const d = txNavHaversine(me[0], me[1], _txNavRouteCoords[i][0], _txNavRouteCoords[i][1]);
+        if (d < nearD) { nearD = d; nearI = i; }
+    }
+    let rem = nearD;
+    for (let i = nearI; i < _txNavRouteCoords.length - 1; i++) {
+        rem += txNavHaversine(_txNavRouteCoords[i][0], _txNavRouteCoords[i][1], _txNavRouteCoords[i + 1][0], _txNavRouteCoords[i + 1][1]);
+    }
+    return rem;
+}
+function txNavUpdateLiveETA(me) {
+    const rem = txNavRemainingMeters(me);
+    if (rem === null) return;
+    // السرعة المستخدمة: الحية إن كانت معقولة، وإلا متوسط مدينة 8.3 م/ث (~30 كم/س)
+    let v = (_txNavSpeedAvg && _txNavSpeedAvg > 1) ? _txNavSpeedAvg : 8.3;
+    const secs = rem / v;
+    const min = Math.max(1, Math.round(secs / 60));
+    const km = rem >= 1000 ? (rem / 1000).toFixed(1) + ' كم' : Math.round(rem / 10) * 10 + ' م';
+    // وقت الوصول الفعلي (الساعة)
+    const arrive = new Date(Date.now() + secs * 1000);
+    const hh = arrive.getHours(), mm = String(arrive.getMinutes()).padStart(2, '0');
+    const ampm = hh < 12 ? 'ص' : 'م';
+    const h12 = ((hh % 12) || 12);
+    const setT = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+    setT('tx-nav-eta-min', min + ' د');
+    setT('tx-nav-eta-dist', km);
+    setT('tx-nav-eta-arrive', `${h12}:${mm} ${ampm}`);
+}
+// أيقونات ونصوص الاتجاهات بالعربي (دليل طريق مثل قوقل ماب)
+function txNavManeuver(type, modifier) {
+    const m = modifier || '';
+    const A = { 'left': '⬅️', 'right': '➡️', 'slight left': '↖️', 'slight right': '↗️', 'sharp left': '⬅️', 'sharp right': '➡️', 'straight': '⬆️', 'uturn': '⤵️' };
+    const Ltxt = { 'left': 'يساراً', 'right': 'يميناً', 'slight left': 'يساراً قليلاً', 'slight right': 'يميناً قليلاً', 'sharp left': 'يساراً بحدة', 'sharp right': 'يميناً بحدة', 'straight': 'مستقيماً', 'uturn': 'دوراناً كاملاً' };
+    switch (type) {
+        case 'turn': return { icon: A[m] || '⬆️', text: 'انعطف ' + (Ltxt[m] || '') };
+        case 'new name': return { icon: '⬆️', text: 'تابع مستقيماً' };
+        case 'depart': return { icon: '🚗', text: 'انطلق' };
+        case 'arrive': return { icon: '🏁', text: 'وصلت إلى وجهتك' };
+        case 'merge': return { icon: '🔀', text: 'اندمج ' + (Ltxt[m] || '') };
+        case 'on ramp': return { icon: '🛣️', text: 'اسلك المنعطف ' + (Ltxt[m] || '') };
+        case 'off ramp': return { icon: '🛤️', text: 'اخرج من الطريق ' + (Ltxt[m] || '') };
+        case 'fork': return { icon: '🔱', text: 'عند التفرع خذ ' + (Ltxt[m] || 'المسار') };
+        case 'end of road': return { icon: '🛑', text: 'في نهاية الطريق انعطف ' + (Ltxt[m] || '') };
+        case 'continue': return { icon: A[m] || '⬆️', text: 'تابع ' + (Ltxt[m] || 'مستقيماً') };
+        case 'roundabout': case 'rotary': return { icon: '🔄', text: 'ادخل الدوار' };
+        case 'roundabout turn': return { icon: '🔄', text: 'عند الدوار انعطف ' + (Ltxt[m] || '') };
+        default: return { icon: '⬆️', text: 'تابع' };
+    }
+}
+function txFmtDist(m) { return m < 1000 ? `${Math.round(m / 10) * 10} متر` : `${(m / 1000).toFixed(1)} كم`; }
+async function txNavFetchRoute(from, to) {
+    try {
+        // أدق مسار: هندسة كاملة + بدائل + تعليمات (اختيار الأقصر زمناً = أقرب طريق فعلي)
+        const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson&steps=true&alternatives=true&annotations=true`;
+        const ctrl = new AbortController(); setTimeout(() => ctrl.abort(), 6000);
+        const res = await fetch(url, { signal: ctrl.signal });
+        const j = await res.json();
+        if (!j.routes || !j.routes.length) return;
+        // اختيار أفضل مسار (الأقل زمناً) من البدائل
+        const r = j.routes.reduce((best, x) => (x.duration < best.duration ? x : best), j.routes[0]);
+        const coords = r.geometry.coordinates.map(p => [p[1], p[0]]);
+        _txNavRouteCoords = coords;
+        // مسار بطبقتين مثل قوقل ماب: حد خارجي غامق + خط داخلي
+        if (_txNavRouteLn) { _txNavRouteLn.setLatLngs(coords); if (_txNavRouteOutline) _txNavRouteOutline.setLatLngs(coords); }
+        else {
+            _txNavRouteOutline = L.polyline(coords, { color: '#3b1a52', weight: 12, opacity: 0.95, lineJoin: 'round', lineCap: 'round' }).addTo(_txNavMap);
+            _txNavRouteLn = L.polyline(coords, { color: '#8e44ad', weight: 7, opacity: 1, lineJoin: 'round', lineCap: 'round' }).addTo(_txNavMap);
+        }
+        // بناء الخطوات بالعربي
+        _txNavSteps = (r.legs[0].steps || []).map(st => {
+            const man = txNavManeuver(st.maneuver.type, st.maneuver.modifier);
+            return {
+                lat: st.maneuver.location[1], lng: st.maneuver.location[0],
+                icon: man.icon, text: man.text + (st.name ? ' إلى ' + st.name : ''),
+                shortText: man.text, road: st.name || '', dist: st.distance
+            };
+        });
+        // ETA يُحسب حياً في txNavUpdateLiveETA (أدق من تقدير OSRM الثابت)
+        txRenderRouteSteps();
+    } catch (e) { /* تجاهل أخطاء الشبكة المؤقتة */ }
+}
+function txNavUpdateInstruction(me) {
+    if (!_txNavSteps.length) return;
+    // أقرب خطوة قادمة (دليل قوقل ماب: الخطوة الحالية + المسافة إليها + الخطوة التالية)
+    let bi = 0, bestD = Infinity;
+    for (let i = 0; i < _txNavSteps.length; i++) {
+        const d = txNavHaversine(me[0], me[1], _txNavSteps[i].lat, _txNavSteps[i].lng);
+        if (d < bestD) { bestD = d; bi = i; }
+    }
+    const cur = _txNavSteps[bi];
+    document.getElementById('tx-nav-arrow').innerText = cur.icon;
+    document.getElementById('tx-nav-instruction').innerText = cur.text;
+    document.getElementById('tx-nav-distance').innerText = bestD < 30 ? 'الآن' : ('بعد ' + txFmtDist(bestD));
+    // اسم الشارع الحالي الذي يسير عليه السائق (مثل قوقل ماب: "أنت في شارع كذا")
+    const roadName = (cur.road && cur.road.trim()) ? cur.road : (_txNavSteps[bi - 1] && _txNavSteps[bi - 1].road) || '';
+    const roadEl = document.getElementById('tx-nav-current-road-name');
+    const roadBox = document.getElementById('tx-nav-current-road');
+    if (roadEl && roadBox) {
+        if (roadName) { roadEl.innerText = roadName; roadBox.style.display = 'block'; }
+        else roadBox.style.display = 'none';
+    }
+    // [Voice] نطق التعليمة حسب القرب — تنبيه مُسبق ثم عند المناورة (مثل قوقل ماب)
+    if (bestD <= 40) txSpeak(cur.shortText);
+    else if (bestD <= 250) txSpeak('بعد ' + txFmtDist(bestD) + ' ' + cur.shortText);
+    // الخطوة التالية
+    const nx = _txNavSteps[bi + 1];
+    const nextBox = document.getElementById('tx-nav-next');
+    if (nx) {
+        nextBox.style.display = 'flex';
+        document.getElementById('tx-nav-next-arrow').innerText = nx.icon;
+        document.getElementById('tx-nav-next-text').innerText = nx.shortText + (nx.road ? ' — ' + nx.road : '');
+    } else nextBox.style.display = 'none';
+    // إبراز الخطوة الحالية في دليل الطريق
+    _txNavCurrentIdx = bi;
+    txHighlightRouteStep(bi);
+}
+// دليل الطريق الكامل (قائمة كل الخطوات)
+let _txNavCurrentIdx = 0;
+function txRenderRouteSteps() {
+    const list = document.getElementById('tx-nav-steps-list');
+    if (!list) return;
+    if (!_txNavSteps.length) { list.innerHTML = '<div style="opacity:0.5; text-align:center; padding:14px;">جارٍ حساب المسار...</div>'; return; }
+    list.innerHTML = _txNavSteps.map((s, i) => `
+        <div id="tx-step-${i}" style="display:flex; gap:10px; align-items:flex-start; padding:10px 8px; border-bottom:1px dashed rgba(255,255,255,0.08); ${i === _txNavCurrentIdx ? 'background:rgba(46,204,113,0.1); border-radius:8px;' : ''}">
+            <span style="font-size:20px; flex-shrink:0;">${s.icon}</span>
+            <div style="flex:1;">
+                <div style="font-size:12px; font-weight:bold; color:#fff;">${s.text}</div>
+                ${s.dist ? `<div style="font-size:10px; color:#f1c40f; margin-top:2px;">${txFmtDist(s.dist)}</div>` : ''}
+            </div>
+        </div>`).join('');
+}
+function txHighlightRouteStep(idx) {
+    const panel = document.getElementById('tx-nav-steps-panel');
+    if (!panel || panel.style.display === 'none') return;
+    _txNavSteps.forEach((s, i) => {
+        const el = document.getElementById('tx-step-' + i);
+        if (el) el.style.background = i === idx ? 'rgba(46,204,113,0.1)' : 'transparent';
+    });
+}
+function txToggleRouteSteps() {
+    const p = document.getElementById('tx-nav-steps-panel');
+    const show = p.style.display === 'none' || !p.style.display;
+    p.style.display = show ? 'block' : 'none';
+    if (show) { txRenderRouteSteps(); txHighlightRouteStep(_txNavCurrentIdx); }
+}
+function txNavHaversine(la1, lo1, la2, lo2) {
+    const R = 6371000, t = x => x * Math.PI / 180;
+    const dLa = t(la2 - la1), dLo = t(lo2 - lo1);
+    const a = Math.sin(dLa / 2) ** 2 + Math.cos(t(la1)) * Math.cos(t(la2)) * Math.sin(dLo / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+}
+// تأكيد الإنهاء من النافذة الداخلية: مقارنة الكود ثم تنفيذ الإنهاء الفعلي
+async function txConfirmCompleteRide() {
+    if (_txPendingCompleteCode) {
+        const entered = document.getElementById('taxi-complete-code-input').value.trim();
+        if (!entered) { siteNotify("أدخل كود الإنهاء من العميل 🔐"); return; }
+        if (String(entered) !== String(_txPendingCompleteCode).trim()) {
+            siteNotify("الكود غير صحيح ❌ — اطلب الكود الظاهر عند العميل");
+            document.getElementById('taxi-complete-code-input').value = '';
+            return;
+        }
+    }
+    document.getElementById('taxi-complete-modal').style.display = 'none';
+    await updateTaxiRideStatus('completed', true);
+}
+
+// تحديث نص زر الاتجاهات حسب حالة الرحلة
+function txSyncDirectionsLabel(status) {
+    const lbl = document.getElementById('taxi-btn-directions-label');
+    const btn = document.getElementById('taxi-btn-directions');
+    if (!lbl || !btn) return;
+    btn.style.display = ['accepted', 'arrived', 'started'].includes(status) ? 'block' : 'none';
+    lbl.innerText = status === 'accepted' ? 'الاتجاهات إلى العميل 🧭' : 'الاتجاهات إلى الوجهة النهائية 🧭';
 }
 
 // ===== واجهة الرحلة النشطة =====
@@ -8180,6 +8987,7 @@ function syncTaxiRideButtons(status) {
     document.getElementById('taxi-btn-arrived').style.display = status === 'accepted' ? 'block' : 'none';
     document.getElementById('taxi-btn-started').style.display = status === 'arrived' ? 'block' : 'none';
     document.getElementById('taxi-btn-completed').style.display = status === 'started' ? 'block' : 'none';
+    txSyncDirectionsLabel(status); // زر الاتجاهات يتبدل تلقائياً حسب الحالة
 }
 
 // ===== خريطة السائق: موقع العميل + الوجهة + المسار + موقعي المباشر =====
@@ -8188,7 +8996,8 @@ function initTaxiDriverMap() {
     if (!o) return;
     if (!_taxiDriverMap) {
         _taxiDriverMap = L.map('taxi-driver-map', { zoomControl: true, attributionControl: false }).setView([o.pickup_lat || 35.1354, o.pickup_lng || 36.7520], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(_taxiDriverMap);
+        // بلاطات خرائط Google بالعربية — كل مكان مكتوب اسمه تماماً مثل قوقل ماب
+    L.tileLayer('https://{s}.google.com/vt/lyrs=m&hl=ar&gl=SA&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'] }).addTo(_taxiDriverMap);
     }
     setTimeout(() => _taxiDriverMap.invalidateSize(), 300);
     const mkIcon = (emoji) => L.divIcon({ html: `<div style="font-size:25px; line-height:1; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.6));">${emoji}</div>`, className: '', iconSize: [25, 25], iconAnchor: [12, 23] });
@@ -8243,22 +9052,25 @@ function stopTaxiDriverLocationSharing() {
 }
 
 // ===== تحديث حالة الرحلة (وصلت / بدء / إنهاء) =====
-async function updateTaxiRideStatus(newStatus) {
+let _txPendingCompleteCode = null;
+async function updateTaxiRideStatus(newStatus, _verified) {
     if (!_taxiActiveRide) return;
-    // [TAXI-COMPLETE-CODE] إنهاء الرحلة يتطلب كود التحقق من العميل
-    if (newStatus === 'completed') {
+    // [TAXI-COMPLETE-CODE] إنهاء الرحلة: نافذة داخل النظام (تأكيد استلام المبلغ + كود التحقق)
+    if (newStatus === 'completed' && !_verified) {
         let realCode = _taxiActiveRide.complete_code;
         try {
             const { data: fr } = await _taxiDB.from('taxi_orders').select('complete_code, fare').eq('id', _taxiActiveRide.id).limit(1);
             if (fr && fr.length) { realCode = fr[0].complete_code; if (fr[0].fare) _taxiActiveRide.fare = fr[0].fare; }
         } catch (e) {}
-        if (realCode) {
-            const entered = prompt("🔐 أدخل كود إنهاء الرحلة (اطلبه من العميل):");
-            if (entered === null) return;
-            if (String(entered).trim() !== String(realCode).trim()) { siteNotify("الكود غير صحيح ❌ — اطلب الكود الظاهر عند العميل"); return; }
-        } else {
-            if (!confirm("تأكيد إنهاء الرحلة ووصول العميل؟")) return;
-        }
+        _txPendingCompleteCode = realCode || null;
+        // عبارة التأكيد حسب مبلغ الرحلة الفعلي
+        document.getElementById('taxi-complete-fare-val').innerText = _taxiActiveRide.fare ? (Number(_taxiActiveRide.fare).toLocaleString('ar-SY') + ' ل.س') : 'أجرة الرحلة المتفق عليها';
+        document.getElementById('taxi-complete-code-wrap').style.display = realCode ? 'block' : 'none';
+        const inp = document.getElementById('taxi-complete-code-input');
+        inp.value = '';
+        document.getElementById('taxi-complete-modal').style.display = 'flex';
+        if (realCode) setTimeout(() => inp.focus(), 250);
+        return;
     }
     const upd = { status: newStatus };
     if (newStatus === 'completed') upd.completed_at = new Date().toISOString();
@@ -8293,13 +9105,69 @@ async function updateTaxiRideStatus(newStatus) {
 }
 
 // ===== إلغاء الرحلة من طرف السائق =====
+// [TX-ASK] تأكيد داخل النظام — لا نوافذ متصفح نهائياً
+function txdAsk(msg, icon, yesLabel, cb) {
+    document.getElementById('txd-ask-msg').innerText = msg;
+    document.getElementById('txd-ask-icon').innerText = icon || '❓';
+    const yes = document.getElementById('txd-ask-yes');
+    yes.innerText = yesLabel || 'تأكيد';
+    yes.onclick = function() { document.getElementById('txd-ask-modal').style.display = 'none'; cb(); };
+    document.getElementById('txd-ask-modal').style.display = 'flex';
+}
+// [TX-REPORT] بلاغ من السائق للإدارة
+function txdOpenReport() {
+    document.getElementById('txd-report-text').value = '';
+    document.getElementById('txd-report-modal').style.display = 'flex';
+}
+async function txdSendReport() {
+    const txt = document.getElementById('txd-report-text').value.trim();
+    if (!txt) { siteNotify("اكتب نص البلاغ أولاً ✍️"); return; }
+    const ref = String((_taxiDriverProfile && _taxiDriverProfile.driver_ref_id) || (currentUserData && currentUserData.id) || '');
+    const myName = (currentUserData && currentUserData.name) || (_taxiDriverProfile && _taxiDriverProfile.driver_name) || 'سائق';
+    const myPhone = (currentUserData && currentUserData.phone) || (_taxiDriverProfile && _taxiDriverProfile.driver_phone) || '';
+    try {
+        // بلاغ مهيكل لقسم "بلاغات السائقين" في لوحة الإدارة
+        try {
+            await _taxiDB.from('taxi_reports').insert([{
+                reporter_type: 'driver', reporter_name: myName, reporter_phone: myPhone,
+                order_id: _taxiActiveRide ? _taxiActiveRide.id : null,
+                car_type_name: _taxiActiveRide ? _taxiActiveRide.car_type_name : ((_taxiDriverProfile && _taxiDriverProfile.car_type_name) || null),
+                driver_name: myName, driver_phone: myPhone,
+                customer_name: _taxiActiveRide ? _taxiActiveRide.customer_name : null,
+                message: txt, is_read: false
+            }]);
+        } catch (e) { console.warn('taxi_reports غير مجهز بعد', e); }
+        await _taxiDB.from('taxi_notifications').insert([{
+            target: 'admin', target_id: 'all',
+            title: 'بلاغ من سائق تاكسي 📨',
+            body: `${myName} (${ref})${_taxiActiveRide ? ' — رحلة #' + _taxiActiveRide.id : ''}: ${txt}`,
+            is_read: false
+        }]);
+        document.getElementById('txd-report-modal').style.display = 'none';
+        siteNotify("وصل بلاغك للإدارة ✅");
+    } catch (e) { console.error(e); siteNotify("تعذر الإرسال — حاول مجدداً ❌"); }
+}
+// [ممنوع] السائق لا يستطيع إلغاء الرحلة بنفسه — الإلغاء حصراً عبر الإدارة
 async function driverCancelTaxiRide() {
     if (!_taxiActiveRide) return;
-    if (!confirm("هل أنت متأكد من إلغاء رحلة التاكسي؟")) return;
-    await _taxiDB.from('taxi_orders').update({ status: 'cancelled' }).eq('id', _taxiActiveRide.id);
-    try { await _taxiDB.from('taxi_drivers').update({ is_busy: false }).eq('driver_ref_id', currentUserData.id); } catch (e) {}
-    siteNotify("تم إلغاء الرحلة ❌");
-    endTaxiRideSession();
+    txdAsk("لا يمكنك إلغاء الرحلة بنفسك — الإلغاء يتم حصراً عبر الإدارة. هل تريد إرسال طلب إلغاء للإدارة الآن؟", "🎧", "إرسال طلب الإلغاء", _doDriverCancelRequest);
+}
+async function _doDriverCancelRequest() {
+    try {
+        const ref = String((_taxiDriverProfile && _taxiDriverProfile.driver_ref_id) || currentUserData.id);
+        const myName = (currentUserData && currentUserData.name) || (_taxiDriverProfile && _taxiDriverProfile.driver_name) || 'سائق';
+        await _taxiDB.from('taxi_notifications').insert([{
+            target: 'admin', target_id: 'all',
+            title: 'طلب إلغاء رحلة تاكسي 🚨',
+            body: `السائق ${myName} (${ref}) يطلب إلغاء الرحلة #${_taxiActiveRide.id} — العميل: ${_taxiActiveRide.customer_name || ''} ${_taxiActiveRide.customer_phone || ''}`,
+            is_read: false
+        }]);
+        siteNotify("تم إبلاغ الإدارة بطلب الإلغاء 📩 — الرحلة تبقى نشطة حتى تقرر الإدارة. تواصل معهم هاتفياً إن كان الأمر عاجلاً ☎️");
+    } catch (e) {
+        console.error(e);
+        siteNotify("تعذر إرسال الطلب — تواصل مع الإدارة هاتفياً ☎️");
+    }
+    // الرحلة لا تُلغى ولا تُغلق الجلسة — تبقى نشطة حتى قرار الإدارة
 }
 
 function endTaxiRideSession() {
