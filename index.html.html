@@ -551,20 +551,53 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMo();});
   try{const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent),isSaf=/safari/i.test(navigator.userAgent)&&!/chrome/i.test(navigator.userAgent),isSta=window.matchMedia('(display-mode: standalone)').matches||!!window.navigator.standalone;if(isIOS&&isSaf&&!isSta)setTimeout(()=>document.getElementById('fab').classList.add('show'),3000);}catch(_){}
 
   // Load data
+  // ── Direct REST API — بدون مكتبة خارجية ──
+  const _SBU = "https://ricoslplbhphydhtrufe.supabase.co";
+  const _SBK = "sb_publishable_k6LgEuwPLdCsBMCFC12wfQ_BSOJotuw";
+  const _HDR = {
+    'apikey':        _SBK,
+    'Authorization': 'Bearer ' + _SBK,
+    'Content-Type':  'application/json'
+  };
+
   async function loadData(){
+    // أظهر spinner
+    const lc = document.getElementById('links');
+    if(lc) lc.innerHTML = '<div class="empty-st"><i class="fas fa-spinner fa-spin"></i><p>جاري الاتصال...</p></div>';
+
     try{
-      if(typeof supabase==='undefined'){renderLinks([]);return;}
-      const db=supabase.createClient("https://ricoslplbhphydhtrufe.supabase.co","sb_publishable_k6LgEuwPLdCsBMCFC12wfQ_BSOJotuw");
-      const tout=new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),6000));
-      const[{data:cfg},{data:links}]=await Promise.race([
-        Promise.all([db.from('linktree_settings').select('*').eq('id',1).maybeSingle(),db.from('linktree_links').select('*').eq('visible',true).order('link_order',{ascending:true})]),
-        tout.then(()=>[{data:null},{data:[]}])
+      const ctrl   = new AbortController();
+      const timer  = setTimeout(()=>ctrl.abort(), 12000);
+
+      const [r1, r2] = await Promise.all([
+        fetch(_SBU+'/rest/v1/linktree_settings?id=eq.1&select=*',
+          { headers:_HDR, signal:ctrl.signal }),
+        fetch(_SBU+'/rest/v1/linktree_links?visible=eq.true&order=link_order.asc&select=*',
+          { headers:_HDR, signal:ctrl.signal })
       ]);
-      applySettings(cfg);renderLinks(links||[]);
-    }catch(e){renderLinks([]);}
+
+      clearTimeout(timer);
+
+      // تحقق من الاستجابة
+      if(!r1.ok || !r2.ok){
+        const err = await (!r1.ok ? r1 : r2).text();
+        console.warn('Supabase HTTP error:', err);
+        renderLinks([]); return;
+      }
+
+      const [cfgArr, linksArr] = await Promise.all([r1.json(), r2.json()]);
+
+      applySettings(Array.isArray(cfgArr) ? cfgArr[0] : null);
+      renderLinks(Array.isArray(linksArr) ? linksArr : []);
+
+    }catch(e){
+      console.warn('loadData error:', e.message);
+      renderLinks([]);
+    }
   }
   loadData();
 })();
 </script>
 </body>
 </html>
+
