@@ -1,1059 +1,715 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#1d0535">
-<meta property="og:title" content="شاهين إكسبريس">
-<meta property="og:description" content="أسرع توصيل في المنطقة 🦅">
-<title>شاهين إكسبريس — روابطنا</title>
-<link rel="preconnect" href="https://cdnjs.cloudflare.com">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>شاهين إكسبريس</title>
 
-<style>
-/* ═══════════════════════════════════════════════════════════
-   SHAHEEN EXPRESS — LINK PAGE  v3.0
-   © 2026 شاهين إكسبريس
-═══════════════════════════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <!-- ===== PWA Meta Tags ===== -->
+    <meta name="theme-color" content="#2d0050">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="شاهين إكسبريس">
+    <meta name="description" content="شاهين إكسبريس — أسرع توصيل في المنطقة">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/QxzPkmPf/Whats-App-Image-2026-04-10-at-6-22-30-PM-t7edrz.jpg">
+    <link rel="manifest" href="#" id="pwa-manifest-link">
 
-:root {
-  --gold:    #d4af37;
-  --gold2:   #f1d279;
-  --purple1: #3b0764;
-  --purple2: #1d0535;
-  --dark:    #0a0010;
-  --glass:   rgba(255,255,255,0.06);
-  --border:  rgba(212,175,55,0.28);
-  --sub:     rgba(255,255,255,0.55);
-  --radius:  16px;
-}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* ── Body & Background ── */
-html, body {
-  min-height: 100%;
-  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
-  color: #fff;
-  overflow-x: hidden;
-}
-body {
-  background: radial-gradient(ellipse 120% 90% at 50% 0%, var(--purple1) 0%, var(--purple2) 45%, var(--dark) 100%);
-  min-height: 100vh;
-}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(160deg, #2d0050 0%, #4a0080 50%, #1a0035 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 0 60px;
+            position: relative;
+            overflow-x: hidden;
+        }
 
-/* ── Stars ── */
-#stars-canvas {
-  position: fixed; inset: 0; pointer-events: none; z-index: 0;
-}
+        /* ===== نجوم الخلفية ===== */
+        .stars {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+            opacity: 0;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0.8); }
+            50%       { opacity: var(--op, 0.6); transform: scale(1.2); }
+        }
 
-/* ── Page wrap ── */
-.page {
-  position: relative; z-index: 1;
-  display: flex; flex-direction: column; align-items: center;
-  min-height: 100vh;
-  padding: 44px 18px 56px;
-}
+        /* ===== المحتوى الرئيسي ===== */
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 48px 22px 0;
+        }
 
-/* ── Logo ring ── */
-.logo-wrap {
-  position: relative;
-  width: 124px; height: 124px;
-  margin-bottom: 18px;
-  cursor: pointer;
-  user-select: none;
-}
-.logo-glow {
-  position: absolute; inset: -6px;
-  border-radius: 50%;
-  background: conic-gradient(var(--gold), var(--gold2), #a07820, var(--gold));
-  animation: spinGlow 6s linear infinite;
-  opacity: .9;
-}
-@keyframes spinGlow {
-  to { transform: rotate(360deg); }
-}
-.logo-inner {
-  position: absolute; inset: 4px;
-  border-radius: 50%;
-  background: var(--dark);
-  overflow: hidden;
-  box-shadow: 0 0 30px rgba(212,175,55,.5) inset;
-}
-.logo-inner img {
-  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
-  display: block;
-}
-/* pulse ring */
-.logo-pulse {
-  position: absolute; inset: -14px;
-  border-radius: 50%;
-  border: 2px solid rgba(212,175,55,.35);
-  animation: pulsRing 2.5s ease-out infinite;
-}
-@keyframes pulsRing {
-  0%   { transform: scale(.85); opacity: .7; }
-  70%  { transform: scale(1.1); opacity: 0; }
-  100% { transform: scale(1.1); opacity: 0; }
-}
+        /* ===== الشعار ===== */
+        .logo-ring {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 3px solid #c8a400;
+            box-shadow:
+                0 0 0 1px rgba(200,164,0,0.3),
+                0 0 25px rgba(200,164,0,0.25),
+                inset 0 0 20px rgba(0,0,0,0.3);
+            overflow: hidden;
+            margin-bottom: 22px;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .logo-ring img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .logo-ring .logo-fallback {
+            font-size: 60px;
+            line-height: 1;
+        }
 
-/* ── Company name ── */
-.co-name {
-  font-size: 28px; font-weight: 900;
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 60%, var(--gold) 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: none;
-  letter-spacing: .5px;
-  margin-bottom: 6px;
-  text-align: center;
-  animation: fadeUp .6s ease both;
-}
-.co-sub {
-  font-size: 13px; color: var(--sub);
-  margin-bottom: 36px; text-align: center;
-  animation: fadeUp .6s .1s ease both;
-}
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+        /* ===== العنوان ===== */
+        .page-title {
+            font-size: 2.3rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+        }
+        .page-subtitle {
+            font-size: 0.92rem;
+            color: rgba(255,255,255,0.65);
+            text-align: center;
+            margin-bottom: 38px;
+            letter-spacing: 0.3px;
+        }
 
-/* ── Links container ── */
-.links {
-  width: 100%; max-width: 440px;
-  display: flex; flex-direction: column; gap: 0;
-}
+        /* ===== الروابط ===== */
+        .links-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
 
-/* ── Each link button ── */
-.lnk {
-  display: flex; align-items: center; gap: 0;
-  border-radius: 15px;
-  border: none; cursor: pointer;
-  text-decoration: none;
-  color: #fff;
-  margin-bottom: 13px;
-  position: relative; overflow: hidden;
-  outline: none;
-  transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s;
-  -webkit-tap-highlight-color: transparent;
-}
-.lnk:hover  { transform: translateY(-4px) scale(1.02); }
-.lnk:active { transform: scale(.97); }
+        /* الزر الرئيسي */
+        .link-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            height: 62px;
+            border-radius: 50px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.35);
+        }
+        .link-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 50%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.14), transparent);
+            border-radius: 50px 50px 0 0;
+            pointer-events: none;
+        }
+        .link-btn:hover  { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.45); }
+        .link-btn:active { transform: scale(0.97); }
 
-/* Shine sweep on hover */
-.lnk::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -80%;
-  width: 60%; height: 100%;
-  background: linear-gradient(120deg, transparent, rgba(255,255,255,.18), transparent);
-  transform: skewX(-15deg);
-  transition: left .5s;
-}
-.lnk:hover::after { left: 130%; }
+        /* الأيقونة يمين */
+        .btn-icon {
+            width: 62px;
+            height: 62px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.35rem;
+            position: relative;
+            z-index: 1;
+        }
 
-/* Icon box */
-.lnk-icon {
-  width: 56px; height: 56px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; flex-shrink: 0;
-  background: rgba(0,0,0,.18);
-  border-radius: 14px 0 0 14px;
-}
-/* Label */
-.lnk-label {
-  flex: 1;
-  font-size: 15px; font-weight: 700;
-  padding: 16px 16px 16px 8px;
-  text-align: right;
-  letter-spacing: .2px;
-}
-/* Arrow */
-.lnk-arr {
-  font-size: 12px; opacity: .55;
-  padding-left: 14px; flex-shrink: 0;
-}
+        /* النص */
+        .btn-text {
+            flex: 1;
+            text-align: center;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #ffffff;
+            position: relative;
+            z-index: 1;
+            padding: 0 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: 0.2px;
+        }
 
-/* Light text for yellow/bright bg */
-.lnk.dark-txt { color: #000 !important; }
-.lnk.dark-txt .lnk-arr { opacity: .4; }
+        /* السهم يسار */
+        .btn-arrow {
+            width: 44px;
+            height: 62px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.55);
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
 
-/* ── Badge on button (optional) ── */
-.lnk-badge {
-  position: absolute; top: 8px; left: 10px;
-  background: rgba(0,0,0,.4); color: rgba(255,255,255,.75);
-  font-size: 9px; padding: 2px 7px; border-radius: 20px;
-  pointer-events: none;
-}
+        /* ===== Footer ===== */
+        .page-footer {
+            margin-top: 48px;
+            text-align: center;
+            color: rgba(255,255,255,0.22);
+            font-size: 0.72rem;
+            line-height: 2;
+        }
 
-/* ── Divider ── */
-.divider {
-  width: 100%; max-width: 440px;
-  text-align: center; color: rgba(212,175,55,.35);
-  font-size: 11px; letter-spacing: 3px;
-  margin: 4px 0 14px;
-}
+        /* ===== Loading ===== */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(160deg, #2d0050, #4a0080);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.4s ease;
+        }
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255,255,255,0.08);
+            border-top-color: #c8a400;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+            margin-bottom: 14px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: rgba(255,255,255,0.4); font-size: 0.82rem; }
 
-/* ── Footer ── */
-.footer {
-  margin-top: auto; padding-top: 34px;
-  text-align: center; font-size: 11px;
-  color: rgba(255,255,255,.2);
-  line-height: 1.7;
-}
-.footer a { color: rgba(212,175,55,.4); text-decoration: none; }
+        /* ===== Empty / Error ===== */
+        .empty-state {
+            text-align: center;
+            color: rgba(255,255,255,0.35);
+            font-size: 0.85rem;
+            padding: 24px;
+        }
+        .error-box {
+            background: rgba(231,76,60,0.1);
+            border: 1px solid rgba(231,76,60,0.35);
+            border-radius: 14px;
+            padding: 18px;
+            color: rgba(255,255,255,0.65);
+            font-size: 0.8rem;
+            text-align: center;
+            width: 100%;
+        }
 
-/* ── Empty state ── */
-.empty-state {
-  text-align: center; padding: 40px 20px;
-  color: rgba(255,255,255,.3);
-  font-size: 14px;
-  border: 1px dashed rgba(212,175,55,.2);
-  border-radius: 14px;
-  width: 100%;
-}
+        @media (max-width: 380px) {
+            .container    { padding: 36px 16px 0; }
+            .page-title   { font-size: 1.9rem; }
+            .link-btn     { height: 56px; }
+            .btn-icon     { width: 56px; height: 56px; font-size: 1.2rem; }
+            .btn-text     { font-size: 0.95rem; }
+            .btn-arrow    { width: 36px; }
+        }
 
-/* ═══════════════════════════════════════════════════════════
-   SKELETON LOADING
-═══════════════════════════════════════════════════════════ */
-.skeleton {
-  height: 56px; border-radius: 15px; margin-bottom: 13px;
-  background: linear-gradient(90deg, rgba(255,255,255,.05) 25%, rgba(255,255,255,.1) 50%, rgba(255,255,255,.05) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-.skeleton:nth-child(2) { opacity: .7; }
-.skeleton:nth-child(3) { opacity: .5; }
-.skeleton:nth-child(4) { opacity: .3; }
-@keyframes shimmer {
-  0%   { background-position:  200% 0; }
-  100% { background-position: -200% 0; }
-}
+        /* ===== زر "أضفنا لشاشتك" العائم ===== */
+        #install-fab {
+            position: fixed;
+            bottom: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 800;
+            display: none; /* يُظهره JS */
+            background: rgba(30,0,60,0.82);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(200,164,0,0.5);
+            border-radius: 50px;
+            padding: 11px 22px 11px 18px;
+            color: #f1d279;
+            font-size: 0.88rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(200,164,0,0.15);
+            white-space: nowrap;
+            animation: fabPop 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        #install-fab.show { display: flex; }
+        @keyframes fabPop {
+            from { opacity:0; transform: translateX(-50%) translateY(20px) scale(0.85); }
+            to   { opacity:1; transform: translateX(-50%) translateY(0)    scale(1);    }
+        }
+        #install-fab .fab-icon {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg,#c8a400,#f1d279);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #1a0035;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
 
-/* ═══════════════════════════════════════════════════════════
-   ADMIN PANEL
-═══════════════════════════════════════════════════════════ */
-#adm-overlay {
-  display: none;
-  position: fixed; inset: 0; z-index: 900;
-  background: rgba(0,0,0,.88);
-  backdrop-filter: blur(6px);
-  overflow-y: auto;
-  padding: 20px 14px 50px;
-}
-#adm-overlay.open { display: block; }
+        /* ===== مودال التعليمات ===== */
+        #install-modal {
+            position: fixed; inset: 0;
+            z-index: 900;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0 0 0;
+        }
+        #install-modal.open { display: flex; }
+        #install-modal-bg {
+            position: absolute; inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            animation: fadeIn 0.25s ease;
+        }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        #install-modal-box {
+            position: relative; z-index: 1;
+            width: 100%; max-width: 500px;
+            background: linear-gradient(170deg,#1e003a,#2d0050);
+            border: 1px solid rgba(200,164,0,0.35);
+            border-bottom: none;
+            border-radius: 26px 26px 0 0;
+            padding: 28px 24px 44px;
+            direction: rtl;
+            animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
 
-.adm {
-  max-width: 560px;
-  margin: 0 auto;
-}
+        .modal-handle {
+            width: 42px; height: 5px;
+            background: rgba(255,255,255,0.18);
+            border-radius: 10px;
+            margin: 0 auto 22px;
+        }
+        .modal-logo-row {
+            display: flex; align-items: center; gap: 14px;
+            margin-bottom: 18px;
+        }
+        .modal-logo-img {
+            width: 54px; height: 54px; border-radius: 14px;
+            border: 2px solid rgba(200,164,0,0.5);
+            object-fit: cover; flex-shrink: 0;
+        }
+        .modal-logo-info h3 { color:#fff; font-size:1rem; font-weight:800; margin-bottom:3px; }
+        .modal-logo-info p  { color:rgba(255,255,255,0.5); font-size:0.78rem; }
 
-.adm-hdr {
-  display: flex; justify-content: space-between; align-items: center;
-  padding-bottom: 14px; margin-bottom: 20px;
-  border-bottom: 2px solid var(--border);
-}
-.adm-hdr h2 { color: var(--gold); font-size: 17px; display: flex; align-items: center; gap: 8px; }
-.adm-close {
-  background: rgba(231,76,60,.15); border: 1px solid #e74c3c;
-  color: #e74c3c; padding: 8px 16px; border-radius: 9px;
-  cursor: pointer; font-size: 13px; font-weight: bold;
-  transition: .2s;
-}
-.adm-close:hover { background: rgba(231,76,60,.3); }
+        .modal-title {
+            font-size: 1.05rem; font-weight: 800;
+            color: #f1d279;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
 
-/* Cards */
-.adm-card {
-  background: var(--glass); border: 1px solid var(--border);
-  border-radius: 14px; padding: 18px; margin-bottom: 14px;
-}
-.adm-card h3 {
-  color: var(--gold); font-size: 13px;
-  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
-}
+        /* خطوة */
+        .install-step {
+            display: flex; align-items: flex-start; gap: 14px;
+            margin-bottom: 18px;
+        }
+        .step-num {
+            width: 32px; height: 32px; flex-shrink: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg,#7c3aed,#a78bfa);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 0.8rem; font-weight: 800;
+        }
+        .step-body { flex: 1; padding-top: 4px; }
+        .step-body strong { color:#fff; font-size:0.9rem; display:block; margin-bottom:3px; }
+        .step-body span   { color:rgba(255,255,255,0.55); font-size:0.8rem; line-height:1.6; }
 
-/* Form fields */
-.adm-label { font-size: 11px; color: rgba(255,255,255,.5); margin-bottom: 5px; display: block; }
-.adm-input {
-  width: 100%; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.12);
-  color: #fff; padding: 10px 13px; border-radius: 10px; font-size: 13px;
-  margin-bottom: 10px; transition: border .2s;
-}
-.adm-input:focus { outline: none; border-color: var(--gold); }
-.adm-input::placeholder { color: rgba(255,255,255,.28); }
+        /* أيقونة المشاركة iOS */
+        .ios-share-icon {
+            display:inline-flex; align-items:center; justify-content:center;
+            width:26px; height:26px;
+            background:rgba(255,255,255,0.12);
+            border-radius:6px;
+            vertical-align:middle;
+            margin: 0 3px;
+            font-size:14px;
+        }
 
-.adm-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.adm-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        /* سهم توضيحي يشير لأسفل */
+        .arrow-hint {
+            text-align:center;
+            margin: 12px 0 20px;
+        }
+        .arrow-hint i { color:rgba(200,164,0,0.6); font-size:1.5rem; animation: bounce 1.2s ease-in-out infinite; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
 
-/* Buttons */
-.adm-btn {
-  background: var(--gold); color: #000;
-  border: none; padding: 10px 20px; border-radius: 10px;
-  font-weight: 800; font-size: 13px; cursor: pointer; transition: .2s;
-  display: inline-flex; align-items: center; gap: 7px;
-}
-.adm-btn:hover { background: var(--gold2); transform: translateY(-1px); }
-.adm-btn-ghost {
-  background: transparent; border: 1px solid rgba(255,255,255,.2);
-  color: rgba(255,255,255,.7); padding: 9px 16px; border-radius: 10px;
-  font-size: 12px; cursor: pointer; transition: .2s;
-  display: inline-flex; align-items: center; gap: 6px;
-}
-.adm-btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
-.adm-btn-red {
-  background: rgba(231,76,60,.15); border: 1px solid #e74c3c;
-  color: #e74c3c; padding: 8px 14px; border-radius: 9px;
-  font-size: 12px; cursor: pointer; transition: .2s;
-}
-.adm-btn-red:hover { background: rgba(231,76,60,.3); }
+        .modal-close-btn {
+            width:100%; padding:14px;
+            background: linear-gradient(135deg,#7c3aed,#a78bfa);
+            border:none; border-radius:14px;
+            color:#fff; font-size:0.95rem; font-weight:800;
+            cursor:pointer; font-family:inherit;
+            margin-top:8px;
+            transition: opacity 0.2s;
+        }
+        .modal-close-btn:hover { opacity:0.9; }
 
-/* Link edit rows */
-.link-rows { display: flex; flex-direction: column; gap: 8px; }
-.link-row-item {
-  display: grid; grid-template-columns: 110px 1fr 1fr 36px;
-  gap: 7px; align-items: center;
-  background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.08);
-  border-radius: 11px; padding: 9px;
-  transition: border .2s;
-}
-.link-row-item:hover { border-color: rgba(212,175,55,.3); }
-.link-row-item input,
-.link-row-item select {
-  background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.1);
-  color: #fff; padding: 7px 9px; border-radius: 8px;
-  font-size: 12px; width: 100%;
-}
-.link-row-item input:focus,
-.link-row-item select:focus { outline: none; border-color: var(--gold); }
-.link-row-item select { padding: 7px 4px; font-size: 11px; }
-.link-row-del {
-  background: rgba(231,76,60,.15); border: 1px solid rgba(231,76,60,.4);
-  color: #e74c3c; width: 36px; height: 36px;
-  border-radius: 8px; cursor: pointer; font-size: 18px;
-  display: flex; align-items: center; justify-content: center;
-  transition: .2s; flex-shrink: 0;
-}
-.link-row-del:hover { background: rgba(231,76,60,.3); }
-
-/* Drag handle */
-.link-row-item .drag-handle {
-  cursor: grab; color: rgba(255,255,255,.2); font-size: 14px;
-  display: none; /* enabled via JS */
-}
-
-/* Color pickers row */
-.color-row {
-  display: flex; gap: 12px; align-items: center; margin-bottom: 10px;
-}
-.color-row label { font-size: 11px; color: rgba(255,255,255,.5); flex-shrink: 0; }
-.color-row input[type=color] {
-  width: 44px; height: 38px; border-radius: 8px; cursor: pointer;
-  border: 1px solid rgba(255,255,255,.15); background: none; padding: 2px;
-}
-
-/* QR box */
-.qr-wrap {
-  background: #fff; border-radius: 14px; padding: 14px;
-  display: inline-block; margin: 0 auto;
-  box-shadow: 0 0 30px rgba(212,175,55,.25);
-}
-
-/* Supabase section */
-.sb-toggle { cursor: pointer; user-select: none; }
-.sb-body   { display: none; margin-top: 12px; }
-.sb-body.open { display: block; }
-
-/* ── Admin login modal ── */
-#adm-login {
-  display: none;
-  position: fixed; inset: 0; z-index: 1000;
-  background: rgba(0,0,0,.96);
-  align-items: center; justify-content: center;
-}
-#adm-login.open { display: flex; }
-.login-box {
-  background: linear-gradient(145deg, #1d0535, #2d0a50);
-  border: 1px solid var(--gold); border-radius: 22px;
-  padding: 36px 28px; width: 90%; max-width: 360px;
-  text-align: center; animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
-}
-@keyframes popIn {
-  from { transform: scale(.8); opacity: 0; }
-  to   { transform: scale(1);  opacity: 1; }
-}
-.login-logo {
-  width: 72px; height: 72px; border-radius: 50%;
-  border: 2px solid var(--gold); object-fit: cover;
-  margin-bottom: 12px; box-shadow: 0 0 20px rgba(212,175,55,.4);
-}
-.login-title { font-size: 18px; font-weight: 800; color: var(--gold); margin-bottom: 4px; }
-.login-sub   { font-size: 12px; color: var(--sub); margin-bottom: 22px; }
-
-/* ── Toast ── */
-#toast {
-  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(60px);
-  background: #2ecc71; color: #000; padding: 12px 26px;
-  border-radius: 30px; font-weight: 700; font-size: 14px;
-  z-index: 2000; pointer-events: none;
-  transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s;
-  opacity: 0; white-space: nowrap; max-width: 90vw; text-align: center;
-  box-shadow: 0 8px 24px rgba(0,0,0,.4);
-}
-#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
-/* ── FAB (hidden admin button) ── */
-#fab {
-  position: fixed; bottom: 22px; left: 20px;
-  width: 44px; height: 44px; border-radius: 50%;
-  background: rgba(45,10,80,.6); border: 1px solid rgba(212,175,55,.2);
-  color: rgba(212,175,55,.3); font-size: 17px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; z-index: 50;
-  transition: opacity 1.2s, color .3s, border-color .3s;
-  backdrop-filter: blur(8px);
-}
-#fab:hover { color: var(--gold); border-color: var(--gold); }
-#fab.hidden { opacity: 0; pointer-events: none; }
-
-/* ── Responsive ── */
-@media (max-width: 380px) {
-  .co-name   { font-size: 23px; }
-  .lnk-label { font-size: 14px; }
-  .logo-wrap { width: 106px; height: 106px; }
-}
-
-/* ── Print: hide admin elements ── */
-@media print {
-  #fab, #adm-overlay, #adm-login, #toast { display: none !important; }
-}
-</style>
+        /* Android Install Banner */
+        #android-banner {
+            display: none;
+            position: fixed; bottom: 22px; left: 50%;
+            transform: translateX(-50%);
+            z-index: 800;
+            background: rgba(30,0,60,0.88);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(200,164,0,0.5);
+            border-radius: 50px;
+            padding: 11px 22px 11px 18px;
+            color: #f1d279;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+            white-space: nowrap;
+            font-family: inherit;
+            animation: fabPop 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        #android-banner.show { display: flex; }
+    </style>
 </head>
 <body>
 
-<!-- ── Stars canvas ── -->
-<canvas id="stars-canvas"></canvas>
+    <!-- نجوم الخلفية -->
+    <div class="stars" id="stars-bg"></div>
 
-<!-- ══════════════════════════════════════════════
-     PUBLIC PAGE
-══════════════════════════════════════════════ -->
-<div class="page" id="pub-page">
-
-  <!-- Logo -->
-  <div class="logo-wrap" id="logo-wrap">
-    <div class="logo-glow"></div>
-    <div class="logo-inner">
-      <img id="pub-logo" src="https://i.postimg.cc/QxzPkmPf/Whats-App-Image-2026-04-10-at-6-22-30-PM-t7edrz.jpg" alt="شاهين إكسبريس">
-    </div>
-    <div class="logo-pulse"></div>
-  </div>
-
-  <!-- Company info -->
-  <div class="co-name" id="pub-title">شاهين إكسبريس</div>
-  <div class="co-sub"  id="pub-sub">🦅 أسرع توصيل في المنطقة</div>
-
-  <!-- Links -->
-  <div class="links" id="pub-links">
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-    <div class="skeleton"></div>
-  </div>
-
-  <!-- Footer -->
-  <div class="footer">
-    <div>شاهين إكسبريس © <span id="pub-year"></span></div>
-    <div style="margin-top:4px; font-size:10px;">جميع الحقوق محفوظة</div>
-  </div>
-
-</div>
-
-<!-- ══════════════════════════════════════════════
-     FAB (hidden after 5s, triple-tap logo to show)
-══════════════════════════════════════════════ -->
-<button id="fab" onclick="adminEnter()" title="إدارة الصفحة" aria-label="Admin">
-  <i class="fas fa-cog"></i>
-</button>
-
-<!-- ══════════════════════════════════════════════
-     ADMIN LOGIN
-══════════════════════════════════════════════ -->
-<div id="adm-login">
-  <div class="login-box">
-    <img class="login-logo" id="login-logo"
-      src="https://i.postimg.cc/QxzPkmPf/Whats-App-Image-2026-04-10-at-6-22-30-PM-t7edrz.jpg" alt="">
-    <div class="login-title">لوحة الإدارة</div>
-    <div class="login-sub">شاهين إكسبريس</div>
-    <input type="password" id="login-pass" class="adm-input"
-      placeholder="كلمة المرور" style="text-align:center;letter-spacing:5px;"
-      onkeydown="if(event.key==='Enter') adminDoLogin()">
-    <button class="adm-btn" style="width:100%;padding:13px;font-size:15px;justify-content:center;"
-      onclick="adminDoLogin()">دخول <i class="fas fa-arrow-left"></i></button>
-    <p id="login-err" style="color:#e74c3c;font-size:12px;margin-top:10px;display:none;">⚠️ كلمة المرور غير صحيحة</p>
-    <p style="font-size:10px;color:rgba(255,255,255,.2);margin-top:14px;">
-      كلمة المرور الافتراضية: <code style="color:rgba(212,175,55,.4);">shaheen2026</code>
-    </p>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════
-     ADMIN PANEL
-══════════════════════════════════════════════ -->
-<div id="adm-overlay">
-  <div class="adm">
-
-    <!-- Header -->
-    <div class="adm-hdr">
-      <h2><i class="fas fa-sliders-h" style="color:var(--gold)"></i> إدارة صفحة الروابط</h2>
-      <button class="adm-close" onclick="adminClose()"><i class="fas fa-times"></i> إغلاق</button>
+    <!-- شاشة التحميل -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">جاري التحميل...</div>
     </div>
 
-    <!-- ① Page Settings -->
-    <div class="adm-card">
-      <h3><i class="fas fa-palette"></i> إعدادات الصفحة</h3>
-      <label class="adm-label">اسم الشركة / العنوان الرئيسي</label>
-      <input type="text" id="a-title" class="adm-input" placeholder="شاهين إكسبريس">
-
-      <label class="adm-label">النص التعريفي (تحت الاسم)</label>
-      <input type="text" id="a-sub" class="adm-input" placeholder="🦅 أسرع توصيل في المنطقة">
-
-      <label class="adm-label">رابط الشعار (صورة PNG/JPG)</label>
-      <div style="display:flex;gap:8px;margin-bottom:10px;">
-        <input type="text" id="a-logo" class="adm-input" style="margin:0;flex:1;" placeholder="https://...">
-        <button class="adm-btn-ghost" onclick="prevLogo()"><i class="fas fa-eye"></i></button>
-      </div>
-
-      <label class="adm-label">لون الخلفية</label>
-      <div class="adm-row3" style="margin-bottom:10px;">
-        <div>
-          <label class="adm-label">اللون الأول</label>
-          <input type="color" id="a-bg1" value="#3b0764" style="width:100%;height:40px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:none;padding:2px;">
+    <!-- المحتوى -->
+    <div class="container" id="main-container" style="display:none;">
+        <div class="logo-ring" id="logo-ring">
+            <img src="https://i.postimg.cc/QxzPkmPf/Whats-App-Image-2026-04-10-at-6-22-30-PM-t7edrz.jpg"
+                 alt="شاهين إكسبريس"
+                 id="logo-default-img"
+                 style="width:100%;height:100%;object-fit:cover;display:block;">
+            <span class="logo-fallback" id="logo-fallback" style="display:none;">🦅</span>
         </div>
-        <div>
-          <label class="adm-label">اللون الثاني</label>
-          <input type="color" id="a-bg2" value="#1d0535" style="width:100%;height:40px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:none;padding:2px;">
+
+        <div class="page-title"    id="page-title">شاهين إكسبريس</div>
+        <div class="page-subtitle" id="page-subtitle">أسرع توصيل في المنطقة 🚀</div>
+
+        <div class="links-container" id="links-container">
+            <div class="empty-state">جاري تحميل الروابط...</div>
         </div>
-        <div>
-          <label class="adm-label">اللون الثالث</label>
-          <input type="color" id="a-bg3" value="#0a0010" style="width:100%;height:40px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,255,255,.15);background:none;padding:2px;">
+
+        <div class="page-footer">
+            <div id="footer-brand">شاهين إكسبريس © 2026</div>
+            <div>جميع الحقوق محفوظة</div>
         </div>
-      </div>
     </div>
 
-    <!-- ② Links Manager -->
-    <div class="adm-card">
-      <h3><i class="fas fa-link"></i> إدارة الروابط</h3>
-      <!-- Column headers -->
-      <div style="display:grid;grid-template-columns:110px 1fr 1fr 36px;gap:7px;padding:0 3px;margin-bottom:6px;">
-        <span style="font-size:10px;color:rgba(255,255,255,.35);">المنصة</span>
-        <span style="font-size:10px;color:rgba(255,255,255,.35);">نص الزر</span>
-        <span style="font-size:10px;color:rgba(255,255,255,.35);">الرابط</span>
-        <span></span>
-      </div>
-      <div class="link-rows" id="link-rows"></div>
-      <button class="adm-btn-ghost" onclick="addLinkRow()" style="width:100%;justify-content:center;margin-top:6px;padding:11px;">
-        <i class="fas fa-plus"></i> إضافة رابط جديد
-      </button>
-    </div>
+    <!-- ===== زر iOS العائم ===== -->
+    <button id="install-fab" onclick="openInstallModal()" aria-label="أضف للشاشة الرئيسية">
+        <div class="fab-icon"><i class="fas fa-plus"></i></div>
+        أضف شاهين لشاشتك الرئيسية
+    </button>
 
-    <!-- ③ QR Code -->
-    <div class="adm-card" style="text-align:center;">
-      <h3 style="justify-content:center;"><i class="fas fa-qrcode"></i> QR Code الصفحة</h3>
-      <div class="qr-wrap" id="qr-box" style="margin:0 auto 14px;"></div>
-      <p id="qr-url-txt" style="font-family:monospace;font-size:11px;color:rgba(212,175,55,.7);word-break:break-all;margin-bottom:12px;"></p>
-      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-        <button class="adm-btn" onclick="downloadQR()"><i class="fas fa-download"></i> تحميل QR</button>
-        <button class="adm-btn-ghost" onclick="copyURL()"><i class="fas fa-copy"></i> نسخ الرابط</button>
-      </div>
-    </div>
+    <!-- ===== زر Android ===== -->
+    <button id="android-banner" onclick="triggerAndroidInstall()" aria-label="تثبيت التطبيق">
+        <div class="fab-icon"><i class="fab fa-google-play"></i></div>
+        ثبّت التطبيق على جهازك
+    </button>
 
-    <!-- ④ Supabase (optional) -->
-    <div class="adm-card">
-      <h3 class="sb-toggle" onclick="toggleSB()">
-        <i class="fas fa-database"></i> ربط Supabase (اختياري)
-        <i class="fas fa-chevron-down" id="sb-chevron" style="margin-right:auto;font-size:11px;"></i>
-      </h3>
-      <div class="sb-body" id="sb-body">
-        <label class="adm-label">Supabase Project URL</label>
-        <input type="text" id="sb-url" class="adm-input" placeholder="https://xxxx.supabase.co">
-        <label class="adm-label">Anon Key</label>
-        <input type="text" id="sb-key" class="adm-input" placeholder="eyJhbGci...">
-        <label class="adm-label">Page ID (من جدول lp_pages)</label>
-        <input type="text" id="sb-pid" class="adm-input" placeholder="uuid...">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="adm-btn-ghost" onclick="sbConnect()"><i class="fas fa-plug"></i> اتصال</button>
-          <button class="adm-btn-ghost" onclick="sbPull()"><i class="fas fa-cloud-download-alt"></i> تحميل من السحابة</button>
-          <button class="adm-btn-ghost" onclick="sbPush()"><i class="fas fa-cloud-upload-alt"></i> رفع للسحابة</button>
+    <!-- ===== مودال تعليمات iOS ===== -->
+    <div id="install-modal" role="dialog" aria-modal="true">
+        <div id="install-modal-bg" onclick="closeInstallModal()"></div>
+        <div id="install-modal-box">
+            <div class="modal-handle"></div>
+
+            <!-- شعار + اسم -->
+            <div class="modal-logo-row">
+                <img class="modal-logo-img"
+                     src="https://i.postimg.cc/QxzPkmPf/Whats-App-Image-2026-04-10-at-6-22-30-PM-t7edrz.jpg"
+                     alt="شاهين إكسبريس">
+                <div class="modal-logo-info">
+                    <h3>شاهين إكسبريس</h3>
+                    <p>www.shahinapp.com</p>
+                </div>
+            </div>
+
+            <div class="modal-title">
+                📲 كيف تضيف شاهين لشاشتك الرئيسية؟
+            </div>
+
+            <!-- خطوة 1 -->
+            <div class="install-step">
+                <div class="step-num">1</div>
+                <div class="step-body">
+                    <strong>اضغط على زر المشاركة</strong>
+                    <span>
+                        في شريط سفاري اضغط أيقونة المشاركة
+                        <span class="ios-share-icon"><i class="fas fa-arrow-up-from-bracket"></i></span>
+                        في أسفل الشاشة
+                    </span>
+                </div>
+            </div>
+
+            <div class="arrow-hint"><i class="fas fa-chevron-down"></i></div>
+
+            <!-- خطوة 2 -->
+            <div class="install-step">
+                <div class="step-num">2</div>
+                <div class="step-body">
+                    <strong>اختر "إضافة إلى الشاشة الرئيسية"</strong>
+                    <span>
+                        مرّر القائمة لأسفل واضغط على
+                        <b style="color:#fff;"> ＋ إضافة إلى الشاشة الرئيسية</b>
+                    </span>
+                </div>
+            </div>
+
+            <div class="arrow-hint"><i class="fas fa-chevron-down"></i></div>
+
+            <!-- خطوة 3 -->
+            <div class="install-step">
+                <div class="step-num">3</div>
+                <div class="step-body">
+                    <strong>اضغط "إضافة" ✓</strong>
+                    <span>سيظهر شعار شاهين على شاشتك الرئيسية مباشرةً!</span>
+                </div>
+            </div>
+
+            <button class="modal-close-btn" onclick="closeInstallModal()">
+                <i class="fas fa-check"></i> &nbsp;فهمت، شكراً!
+            </button>
         </div>
-        <div id="sb-status" style="font-size:11px;color:#aaa;margin-top:8px;"></div>
-        <details style="margin-top:12px;">
-          <summary style="font-size:11px;color:rgba(212,175,55,.5);cursor:pointer;">📋 SQL إنشاء الجدول</summary>
-          <pre style="font-size:10px;color:#888;background:rgba(0,0,0,.5);padding:10px;border-radius:8px;overflow-x:auto;margin-top:8px;white-space:pre-wrap;">CREATE TABLE IF NOT EXISTS public.lp_pages (
-  id      uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  title   text,
-  logo    text,
-  sub     text,
-  bg1     text DEFAULT '#3b0764',
-  bg2     text DEFAULT '#1d0535',
-  bg3     text DEFAULT '#0a0010',
-  links   jsonb DEFAULT '[]'::jsonb,
-  updated_at timestamptz DEFAULT now()
-);
-ALTER TABLE public.lp_pages ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "public_read"  ON public.lp_pages FOR SELECT USING (true);
-CREATE POLICY "public_write" ON public.lp_pages FOR ALL    USING (true) WITH CHECK (true);</pre>
-        </details>
-      </div>
     </div>
 
-    <!-- ⑤ Admin Password -->
-    <div class="adm-card">
-      <h3><i class="fas fa-lock"></i> تغيير كلمة المرور</h3>
-      <div style="display:flex;gap:8px;">
-        <input type="password" id="new-pass" class="adm-input" style="margin:0;flex:1;" placeholder="كلمة مرور جديدة (4+ أحرف)">
-        <button class="adm-btn" onclick="changePass()"><i class="fas fa-save"></i></button>
-      </div>
-    </div>
+    <script>
+    /* ===== PWA Manifest (Inline) ===== */
+    const _manifest = {
+        name: "شاهين إكسبريس",
+        short_name: "شاهين",
+        description: "أسرع توصيل في المنطقة",
+        start_url: "https://www.shahinapp.com/",
+        display: "standalone",
+        background_color: "#2d0050",
+        theme_color: "#2d0050",
+        lang: "ar",
+        dir: "rtl",
+        icons: [
+            { src: "https://i.postimg.cc/QxzPkmPf/Whats-App-Image-2026-04-10-at-6-22-30-PM-t7edrz.jpg", sizes: "192x192", type: "image/jpeg" },
+            { src: "https://i.postimg.cc/QxzPkmPf/Whats-App-Image-2026-04-10-at-6-22-30-PM-t7edrz.jpg", sizes: "512x512", type: "image/jpeg" }
+        ]
+    };
+    const _manifestBlob = new Blob([JSON.stringify(_manifest)], {type:'application/json'});
+    const _manifestURL  = URL.createObjectURL(_manifestBlob);
+    document.getElementById('pwa-manifest-link').href = _manifestURL;
 
-    <!-- Save & Close -->
-    <div style="display:flex;gap:10px;margin-top:6px;">
-      <button class="adm-btn" onclick="admSave()" style="flex:3;padding:14px;font-size:15px;justify-content:center;">
-        <i class="fas fa-save"></i> حفظ التغييرات وعرضها
-      </button>
-      <button class="adm-btn-ghost" onclick="adminClose()" style="flex:1;padding:14px;justify-content:center;">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
+    /* ===== نجوم عشوائية ===== */
+    (function createStars() {
+        const bg = document.getElementById('stars-bg');
+        for (let i = 0; i < 55; i++) {
+            const s = document.createElement('div');
+            s.className = 'star';
+            const size = Math.random() * 2.2 + 0.6;
+            s.style.cssText = `
+                width:${size}px; height:${size}px;
+                top:${Math.random()*100}%;
+                left:${Math.random()*100}%;
+                --d:${(Math.random()*3+2).toFixed(1)}s;
+                --delay:${(Math.random()*4).toFixed(1)}s;
+                --op:${(Math.random()*0.5+0.2).toFixed(2)};
+            `;
+            bg.appendChild(s);
+        }
+    })();
 
-  </div>
-</div>
+    /* ===== Supabase ===== */
+    const SB_URL = "https://ricoslplbhphydhtrufe.supabase.co";
+    const SB_KEY = "sb_publishable_k6LgEuwPLdCsBMCFC12wfQ_BSOJotuw";
+    const _db    = supabase.createClient(SB_URL, SB_KEY);
 
-<!-- Toast -->
-<div id="toast"></div>
+    /* ===== كشف النظام ===== */
+    const _isIOS     = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const _isSafari  = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+    const _isAndroid = /android/i.test(navigator.userAgent);
+    const _isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-<script>
-// ═══════════════════════════════════════════════════════════════════
-//  SHAHEEN EXPRESS — LINK PAGE  ©2026
-//  Standalone HTML — no build tools required
-// ═══════════════════════════════════════════════════════════════════
+    let _androidPrompt = null;
 
-/* ── Config ── */
-const STORE_KEY = 'sh_lp_v1';
-const PASS_KEY  = 'sh_lp_pass';
-const SB_KEYS   = { url:'sh_sb_url', key:'sh_sb_key', pid:'sh_sb_pid' };
-
-/* ── Platform definitions ── */
-const PLT = {
-  whatsapp:   { icon:'fab fa-whatsapp',      label:'واتساب',             color:'#25D366', txt:'#fff' },
-  instagram:  { icon:'fab fa-instagram',     label:'إنستغرام',           color:'#E1306C', txt:'#fff' },
-  facebook:   { icon:'fab fa-facebook-f',    label:'فيسبوك',             color:'#1877F2', txt:'#fff' },
-  googleplay: { icon:'fab fa-google-play',   label:'Google Play',        color:'#01875f', txt:'#fff' },
-  appstore:   { icon:'fab fa-apple',         label:'App Store',          color:'#1c1c1e', txt:'#fff' },
-  telegram:   { icon:'fab fa-telegram',      label:'تيليجرام',           color:'#0088cc', txt:'#fff' },
-  youtube:    { icon:'fab fa-youtube',       label:'يوتيوب',             color:'#FF0000', txt:'#fff' },
-  twitter:    { icon:'fab fa-x-twitter',     label:'تويتر / X',          color:'#000000', txt:'#fff' },
-  snapchat:   { icon:'fab fa-snapchat',      label:'سناب شات',           color:'#FFFC00', txt:'#000', dark:true },
-  tiktok:     { icon:'fab fa-tiktok',        label:'تيك توك',            color:'#010101', txt:'#fff' },
-  website:    { icon:'fas fa-globe',         label:'الموقع الرسمي',      color:'#8e44ad', txt:'#fff' },
-  download:   { icon:'fas fa-download',      label:'تحميل التطبيق',      color:'#2980b9', txt:'#fff' },
-  phone:      { icon:'fas fa-phone',         label:'اتصل بنا',           color:'#27ae60', txt:'#fff' },
-  email:      { icon:'fas fa-envelope',      label:'البريد الإلكتروني',  color:'#c0392b', txt:'#fff' },
-  location:   { icon:'fas fa-map-marker-alt',label:'موقعنا على الخريطة', color:'#e67e22', txt:'#fff' },
-  link:       { icon:'fas fa-link',          label:'رابط مخصص',          color:'#64748b', txt:'#fff' },
-};
-
-/* ── Default data ── */
-let D = {
-  title : 'شاهين إكسبريس',
-  sub   : '🦅 أسرع توصيل في المنطقة',
-  logo  : 'https://i.postimg.cc/QxzPkmPf/Whats-App-Image-2026-04-10-at-6-22-30-PM-t7edrz.jpg',
-  bg1   : '#3b0764',
-  bg2   : '#1d0535',
-  bg3   : '#0a0010',
-  links : [
-    { type:'whatsapp',  label:'تواصل معنا عبر واتساب',  url:'https://wa.me/966XXXXXXXXX' },
-    { type:'instagram', label:'تابعنا على إنستغرام',    url:'https://instagram.com/shaheen_express' },
-    { type:'facebook',  label:'صفحتنا على فيسبوك',      url:'https://facebook.com/shaheen' },
-    { type:'googleplay',label:'حمّل تطبيقنا — Android', url:'https://play.google.com/store' },
-    { type:'appstore',  label:'حمّل تطبيقنا — iOS',     url:'https://apps.apple.com' },
-  ]
-};
-
-let _sbClient = null;
-let _tapCount = 0, _tapTimer;
-
-/* ══════════════════════════════
-   STARS BACKGROUND
-══════════════════════════════ */
-(function() {
-  const cv = document.getElementById('stars-canvas');
-  const cx = cv.getContext('2d');
-  let W, H, stars = [];
-  function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; }
-  function mkStar() {
-    return { x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.3+.2, a:Math.random(), da:(Math.random()-.5)*.006 };
-  }
-  function init() { resize(); stars=[]; for(let i=0;i<120;i++) stars.push(mkStar()); }
-  function draw() {
-    cx.clearRect(0,0,W,H);
-    stars.forEach(s => {
-      s.a = Math.max(.05, Math.min(.9, s.a + s.da));
-      if (s.a <= .05 || s.a >= .9) s.da *= -1;
-      cx.beginPath(); cx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      cx.fillStyle = `rgba(212,175,55,${s.a * .5})`; cx.fill();
+    // التقاط حدث Android install
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        _androidPrompt = e;
+        if (!_isStandalone) {
+            document.getElementById('android-banner').classList.add('show');
+        }
     });
-    requestAnimationFrame(draw);
-  }
-  window.addEventListener('resize', () => { resize(); });
-  init(); draw();
-})();
 
-/* ══════════════════════════════
-   RENDER PUBLIC PAGE
-══════════════════════════════ */
-function render() {
-  // Meta & title
-  document.title = (D.title || 'شاهين إكسبريس') + ' — روابطنا';
-  document.getElementById('pub-year').textContent = new Date().getFullYear();
-
-  // Header
-  const logoEl = document.getElementById('pub-logo');
-  logoEl.src = D.logo || '';
-  logoEl.onerror = () => { logoEl.src = ''; document.querySelector('.logo-inner').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:48px;">🦅</div>'; };
-  document.getElementById('login-logo').src = D.logo || '';
-  document.getElementById('pub-title').textContent = D.title || '';
-  document.getElementById('pub-sub').innerHTML   = D.sub   || '';
-
-  // Background
-  document.body.style.background = `radial-gradient(ellipse 120% 90% at 50% 0%, ${D.bg1} 0%, ${D.bg2} 45%, ${D.bg3} 100%)`;
-
-  // Links
-  const wrap = document.getElementById('pub-links');
-  wrap.innerHTML = '';
-
-  if (!D.links || !D.links.length) {
-    wrap.innerHTML = '<div class="empty-state"><i class="fas fa-link" style="font-size:32px;display:block;margin-bottom:10px;opacity:.3;"></i>لا توجد روابط — افتح لوحة الإدارة لإضافة روابط</div>';
-    return;
-  }
-
-  D.links.forEach((lnk, i) => {
-    const p = PLT[lnk.type] || PLT.link;
-    const a = document.createElement('a');
-    a.href   = lnk.url || '#';
-    a.target = (lnk.url && lnk.url.startsWith('http')) ? '_blank' : '_self';
-    a.rel    = 'noopener noreferrer';
-    a.className = 'lnk' + (p.dark ? ' dark-txt' : '');
-    a.style.background = p.color;
-    a.style.color      = p.txt;
-    a.style.boxShadow  = `0 6px 24px ${p.color}55, 0 2px 8px ${p.color}33`;
-    a.style.opacity    = '0';
-    a.style.transform  = 'translateY(18px)';
-    a.innerHTML = `
-      <div class="lnk-icon" style="color:${p.txt}"><i class="${p.icon}"></i></div>
-      <span class="lnk-label">${lnk.label || p.label}</span>
-      <i class="fas fa-chevron-left lnk-arr"></i>`;
-    wrap.appendChild(a);
-    setTimeout(() => {
-      a.style.transition = `opacity .4s ease, transform .4s ease, box-shadow .2s, transform .2s`;
-      a.style.opacity    = '1';
-      a.style.transform  = 'translateY(0)';
-    }, 60 + i * 90);
-  });
-}
-
-/* ══════════════════════════════
-   DATA — LOAD / SAVE
-══════════════════════════════ */
-function loadData() {
-  const saved = localStorage.getItem(STORE_KEY);
-  if (saved) { try { D = { ...D, ...JSON.parse(saved) }; } catch(e) {} }
-}
-
-function saveData() {
-  localStorage.setItem(STORE_KEY, JSON.stringify(D));
-}
-
-/* ══════════════════════════════
-   ADMIN AUTH
-══════════════════════════════ */
-function adminEnter() {
-  document.getElementById('login-pass').value = '';
-  document.getElementById('login-err').style.display = 'none';
-  document.getElementById('adm-login').classList.add('open');
-  setTimeout(() => document.getElementById('login-pass').focus(), 200);
-}
-
-function adminDoLogin() {
-  const entered = document.getElementById('login-pass').value;
-  const correct = localStorage.getItem(PASS_KEY) || 'shaheen2026';
-  if (entered === correct) {
-    document.getElementById('adm-login').classList.remove('open');
-    openAdmin();
-  } else {
-    document.getElementById('login-err').style.display = 'block';
-    document.getElementById('login-pass').value = '';
-    document.getElementById('login-pass').focus();
-  }
-}
-
-function changePass() {
-  const np = document.getElementById('new-pass').value.trim();
-  if (np.length < 4) { toast('⚠️ كلمة المرور يجب أن تكون 4 أحرف على الأقل', '#e74c3c'); return; }
-  localStorage.setItem(PASS_KEY, np);
-  document.getElementById('new-pass').value = '';
-  toast('✅ تم تغيير كلمة المرور');
-}
-
-/* ══════════════════════════════
-   OPEN / CLOSE ADMIN PANEL
-══════════════════════════════ */
-function openAdmin() {
-  // Fill fields from D
-  document.getElementById('a-title').value = D.title || '';
-  document.getElementById('a-sub').value   = D.sub   || '';
-  document.getElementById('a-logo').value  = D.logo  || '';
-  document.getElementById('a-bg1').value   = D.bg1   || '#3b0764';
-  document.getElementById('a-bg2').value   = D.bg2   || '#1d0535';
-  document.getElementById('a-bg3').value   = D.bg3   || '#0a0010';
-  // Supabase
-  document.getElementById('sb-url').value = localStorage.getItem(SB_KEYS.url) || '';
-  document.getElementById('sb-key').value = localStorage.getItem(SB_KEYS.key) || '';
-  document.getElementById('sb-pid').value = localStorage.getItem(SB_KEYS.pid) || '';
-  // Links
-  const rows = document.getElementById('link-rows');
-  rows.innerHTML = '';
-  (D.links || []).forEach(l => addLinkRow(l));
-  // QR
-  buildQR();
-  // Show panel
-  document.getElementById('adm-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  // Fab stays hidden
-  document.getElementById('fab').classList.add('hidden');
-}
-
-function adminClose() {
-  document.getElementById('adm-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-/* ══════════════════════════════
-   LINK ROWS
-══════════════════════════════ */
-function addLinkRow(data) {
-  const rows = document.getElementById('link-rows');
-  const div  = document.createElement('div');
-  div.className = 'link-row-item';
-  const opts = Object.keys(PLT).map(k =>
-    `<option value="${k}"${data&&data.type===k?' selected':''}>${PLT[k].label}</option>`
-  ).join('');
-  div.innerHTML = `
-    <select>${opts}</select>
-    <input type="text" value="${escH(data?.label||'')}" placeholder="نص الزر">
-    <input type="text" value="${escH(data?.url||'')}"   placeholder="https://...">
-    <button class="link-row-del" onclick="this.closest('.link-row-item').remove()">
-      <i class="fas fa-times"></i>
-    </button>`;
-  rows.appendChild(div);
-}
-
-function escH(s) { return (s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
-
-function collectLinks() {
-  const links = [];
-  document.querySelectorAll('#link-rows .link-row-item').forEach(row => {
-    const [sel, i1, i2] = row.querySelectorAll('select, input');
-    const url = i2.value.trim();
-    if (url) links.push({ type: sel.value, label: i1.value.trim(), url });
-  });
-  return links;
-}
-
-/* ══════════════════════════════
-   SAVE
-══════════════════════════════ */
-function admSave() {
-  D.title = document.getElementById('a-title').value.trim() || D.title;
-  D.sub   = document.getElementById('a-sub').value.trim()   || D.sub;
-  D.logo  = document.getElementById('a-logo').value.trim()  || D.logo;
-  D.bg1   = document.getElementById('a-bg1').value;
-  D.bg2   = document.getElementById('a-bg2').value;
-  D.bg3   = document.getElementById('a-bg3').value;
-  D.links = collectLinks();
-  saveData();
-  render();
-  adminClose();
-  toast('✅ تم حفظ التغييرات وعرضها');
-}
-
-/* ══════════════════════════════
-   LOGO PREVIEW
-══════════════════════════════ */
-function prevLogo() {
-  const url = document.getElementById('a-logo').value.trim();
-  if (!url) { toast('⚠️ أدخل رابط الشعار أولاً', '#e74c3c'); return; }
-  const img = document.getElementById('pub-logo');
-  img.src = url; toast('👁️ معاينة الشعار');
-}
-
-/* ══════════════════════════════
-   QR CODE
-══════════════════════════════ */
-function buildQR() {
-  const box = document.getElementById('qr-box');
-  const url = window.location.href.split('?')[0].split('#')[0];
-  document.getElementById('qr-url-txt').textContent = url;
-  box.innerHTML = '';
-  try {
-    new QRCode(box, {
-      text: url, width: 190, height: 190,
-      colorDark:'#000000', colorLight:'#ffffff',
-      correctLevel: QRCode.CorrectLevel.H
+    // إظهار زر iOS بعد 2 ثانية (فقط إذا لم يكن مثبتاً بالفعل)
+    window.addEventListener('load', () => {
+        if (_isIOS && _isSafari && !_isStandalone) {
+            setTimeout(() => {
+                document.getElementById('install-fab').classList.add('show');
+            }, 2000);
+        }
     });
-  } catch(e) {
-    box.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=190x190&data=${encodeURIComponent(url)}" style="width:190px;height:190px;display:block;">`;
-  }
-}
 
-function downloadQR() {
-  setTimeout(() => {
-    const cv = document.querySelector('#qr-box canvas');
-    if (cv) {
-      const a = document.createElement('a');
-      a.href = cv.toDataURL('image/png');
-      a.download = 'shaheen-qr.png'; a.click();
-      toast('✅ تم تحميل QR'); return;
+    /* ===== وظائف المودال ===== */
+    function openInstallModal() {
+        document.getElementById('install-modal').classList.add('open');
+        document.body.style.overflow = 'hidden';
     }
-    const img = document.querySelector('#qr-box img');
-    if (img) {
-      const a = document.createElement('a');
-      a.href = img.src; a.download = 'shaheen-qr.png'; a.click();
-      toast('✅ تم تحميل QR');
+    function closeInstallModal() {
+        document.getElementById('install-modal').classList.remove('open');
+        document.body.style.overflow = '';
     }
-  }, 200);
-}
+    // إغلاق بـ Escape
+    document.addEventListener('keydown', e => { if(e.key==='Escape') closeInstallModal(); });
 
-function copyURL() {
-  const url = window.location.href.split('?')[0];
-  navigator.clipboard?.writeText(url).then(() => toast('✅ تم نسخ الرابط')).catch(() => {
-    const inp = document.createElement('input');
-    inp.value = url; document.body.appendChild(inp);
-    inp.select(); document.execCommand('copy');
-    inp.remove(); toast('✅ تم نسخ الرابط');
-  });
-}
-
-/* ══════════════════════════════
-   SUPABASE
-══════════════════════════════ */
-function toggleSB() {
-  const b = document.getElementById('sb-body');
-  const c = document.getElementById('sb-chevron');
-  b.classList.toggle('open');
-  c.style.transform = b.classList.contains('open') ? 'rotate(180deg)' : '';
-}
-
-function sbSetStatus(msg, color) {
-  const el = document.getElementById('sb-status');
-  el.textContent = msg; el.style.color = color || '#aaa';
-}
-
-async function sbConnect() {
-  const url = document.getElementById('sb-url').value.trim();
-  const key = document.getElementById('sb-key').value.trim();
-  if (!url || !key) { sbSetStatus('⚠️ أدخل URL و Key', '#e74c3c'); return; }
-  localStorage.setItem(SB_KEYS.url, url);
-  localStorage.setItem(SB_KEYS.key, key);
-  try {
-    // Load via supabase-js CDN on demand
-    if (!window.supabase) {
-      await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js');
+    async function triggerAndroidInstall() {
+        if (!_androidPrompt) return;
+        _androidPrompt.prompt();
+        const { outcome } = await _androidPrompt.userChoice;
+        if (outcome === 'accepted') {
+            document.getElementById('android-banner').classList.remove('show');
+        }
+        _androidPrompt = null;
     }
-    _sbClient = window.supabase.createClient(url, key);
-    sbSetStatus('✅ متصل بـ Supabase', '#2ecc71');
-    toast('✅ تم الاتصال');
-  } catch(e) { sbSetStatus('❌ ' + e.message, '#e74c3c'); }
-}
 
-async function sbPull() {
-  const pid = document.getElementById('sb-pid').value.trim();
-  if (!pid) { sbSetStatus('⚠️ أدخل Page ID', '#e74c3c'); return; }
-  localStorage.setItem(SB_KEYS.pid, pid);
-  if (!_sbClient) { await sbConnect(); if (!_sbClient) return; }
-  try {
-    const { data, error } = await _sbClient.from('lp_pages').select('*').eq('id', pid).single();
-    if (error) throw error;
-    D = { ...D, ...data, links: data.links || D.links };
-    document.getElementById('a-title').value = D.title || '';
-    document.getElementById('a-sub').value   = D.sub   || '';
-    document.getElementById('a-logo').value  = D.logo  || '';
-    document.getElementById('a-bg1').value   = D.bg1   || '#3b0764';
-    document.getElementById('a-bg2').value   = D.bg2   || '#1d0535';
-    document.getElementById('a-bg3').value   = D.bg3   || '#0a0010';
-    const rows = document.getElementById('link-rows');
-    rows.innerHTML = '';
-    (D.links||[]).forEach(l => addLinkRow(l));
-    sbSetStatus('✅ تم التحميل من Supabase', '#2ecc71');
-    toast('✅ تم تحميل البيانات');
-  } catch(e) { sbSetStatus('❌ ' + e.message, '#e74c3c'); }
-}
+    /* ===== تحميل الصفحة ===== */
+    async function loadPage() {
+        try {
+            const [{ data: cfg }, { data: links }] = await Promise.all([
+                _db.from('linktree_settings').select('*').eq('id', 1).maybeSingle(),
+                _db.from('linktree_links').select('*').eq('visible', true).order('link_order', { ascending: true })
+            ]);
+            applySettings(cfg || {});
+            renderLinks(links || []);
+        } catch(e) {
+            console.error(e);
+            document.getElementById('links-container').innerHTML =
+                '<div class="error-box"><i class="fas fa-exclamation-triangle" style="margin-left:8px;color:#e74c3c;"></i>تعذّر تحميل الروابط. يرجى المحاولة لاحقاً.</div>';
+        } finally {
+            const loader = document.getElementById('loading-screen');
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                document.getElementById('main-container').style.display = 'flex';
+            }, 380);
+        }
+    }
 
-async function sbPush() {
-  if (!_sbClient) { await sbConnect(); if (!_sbClient) return; }
-  const pid = localStorage.getItem(SB_KEYS.pid);
-  if (!pid) { sbSetStatus('⚠️ أدخل Page ID ثم اتصل أولاً', '#e74c3c'); return; }
-  const payload = { title:D.title, sub:D.sub, logo:D.logo, bg1:D.bg1, bg2:D.bg2, bg3:D.bg3, links:D.links, updated_at: new Date().toISOString() };
-  try {
-    const { error } = await _sbClient.from('lp_pages').upsert({ id: pid, ...payload });
-    if (error) throw error;
-    sbSetStatus('✅ تم الرفع إلى Supabase', '#2ecc71');
-    toast('✅ تم الحفظ في السحابة');
-  } catch(e) { sbSetStatus('❌ ' + e.message, '#e74c3c'); }
-}
+    function applySettings(cfg) {
+        const bg1 = cfg.bg_color1 || '#2d0050';
+        const bg2 = cfg.bg_color2 || '#4a0080';
+        document.body.style.background = `linear-gradient(160deg, ${bg1} 0%, ${bg2} 50%, ${bg1} 100%)`;
 
-function loadScript(src) {
-  return new Promise((res, rej) => {
-    const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej;
-    document.head.appendChild(s);
-  });
-}
+        if (cfg.page_title) {
+            document.getElementById('page-title').textContent   = cfg.page_title;
+            document.title = cfg.page_title;
+            document.getElementById('footer-brand').textContent = cfg.page_title + ' © ' + new Date().getFullYear();
+        }
+        if (cfg.page_subtitle) document.getElementById('page-subtitle').textContent = cfg.page_subtitle;
+        if (cfg.text_color)    document.getElementById('page-title').style.color    = cfg.text_color;
 
-/* ══════════════════════════════
-   TOAST
-══════════════════════════════ */
-let _toastTimer;
-function toast(msg, bg) {
-  const el = document.getElementById('toast');
-  clearTimeout(_toastTimer);
-  el.textContent = msg;
-  el.style.background = bg || '#2ecc71';
-  el.style.color = bg ? '#fff' : '#000';
-  el.classList.add('show');
-  _toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
-}
+        const defaultLogoImg = document.getElementById('logo-default-img');
+        const fallback        = document.getElementById('logo-fallback');
+        if (defaultLogoImg) {
+            defaultLogoImg.onerror = () => {
+                defaultLogoImg.style.display = 'none';
+                fallback.style.display = 'flex';
+            };
+        }
+        if (cfg.logo_url) {
+            const ring = document.getElementById('logo-ring');
+            const img  = document.createElement('img');
+            img.alt    = cfg.page_title || 'Logo';
+            img.src    = cfg.logo_url;
+            img.style  = 'width:100%;height:100%;object-fit:cover;display:block;';
+            img.onerror = () => img.remove();
+            if (defaultLogoImg) defaultLogoImg.style.display = 'none';
+            ring.insertBefore(img, ring.firstChild);
+        }
+    }
 
-/* ══════════════════════════════
-   TRIPLE TAP LOGO = admin
-══════════════════════════════ */
-document.getElementById('logo-wrap').addEventListener('click', () => {
-  _tapCount++;
-  clearTimeout(_tapTimer);
-  _tapTimer = setTimeout(() => _tapCount = 0, 700);
-  if (_tapCount >= 3) { _tapCount = 0; adminEnter(); }
-});
+    function renderLinks(links) {
+        const container = document.getElementById('links-container');
+        if (!links.length) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-link" style="font-size:2rem;opacity:.3;display:block;margin-bottom:10px;"></i>لا توجد روابط متاحة</div>';
+            return;
+        }
+        container.innerHTML = links.map(link => {
+            const title    = escHtml(link.title || '');
+            const href     = link.url || '#';
+            const icon     = /^fa[bsrl]?\s+fa-[\w-]+$/.test(link.icon || '') ? link.icon : 'fas fa-link';
+            const bg       = /^#[0-9a-fA-F]{3,8}$/.test(link.bg_color   || '') ? link.bg_color   : '#a78bfa';
+            const txtColor = /^#[0-9a-fA-F]{3,8}$/.test(link.text_color || '') ? link.text_color : '#ffffff';
+            return `
+            <a href="${escHtml(href)}" target="_blank" rel="noopener noreferrer"
+               class="link-btn" style="background:${bg};" onclick="trackClick(${link.id})">
+                <div class="btn-icon" style="color:${txtColor};"><i class="${icon}"></i></div>
+                <span class="btn-text" style="color:${txtColor};">${title}</span>
+                <div class="btn-arrow" style="color:${txtColor};"><i class="fas fa-chevron-left"></i></div>
+            </a>`;
+        }).join('');
+    }
 
-/* ══════════════════════════════
-   FAB — hide after 6s
-══════════════════════════════ */
-setTimeout(() => document.getElementById('fab').classList.add('hidden'), 6000);
+    function escHtml(s) {
+        return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function trackClick(id) {
+        try { _db.from('linktree_links').select('id').eq('id', id).limit(1); } catch(e) {}
+    }
 
-/* ══════════════════════════════
-   INIT
-══════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
-  loadData();
-  render();
-});
-</script>
+    loadPage();
+    </script>
 </body>
 </html>
