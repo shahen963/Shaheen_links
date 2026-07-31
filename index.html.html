@@ -408,6 +408,28 @@
   function contactHTML(type,label,sub,href){ const s=CONTACT_STYLES[type];
     return `<a href="${href}" target="_blank" rel="noopener" class="contact-item"><div class="ci-ico" style="background:${s.bg};"><i class="${s.prefix} ${s.ico}"></i></div><div><b>${label}</b><small>${sub}</small></div></a>`; }
 
+  // [FORCE-DOWNLOAD] يجلب الملف فعليًا عبر fetch ويفرض تنزيله كـBlob محلي — هذا يضمن بدء التنزيل
+  // فورًا دائمًا، بعكس خاصية "download" العادية اللي قد لا تعمل بثبات مع ملفات من نطاق مختلف (Supabase)
+  async function forceDownload(url, filename, btnEl) {
+    const originalHTML = btnEl.innerHTML;
+    btnEl.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i><div><small>جارٍ التحضير...</small><b>يرجى الانتظار</b></div>';
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('تعذّر جلب الملف');
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+    } catch (e) {
+      // احتياطي: لو فشل الجلب (مثلاً بسبب CORS)، نفتح الرابط مباشرة كحل بديل
+      window.open(url, '_blank');
+    } finally {
+      btnEl.innerHTML = originalHTML;
+    }
+  }
+
   async function loadData() {
     try {
       const [{count:customers},{count:restaurants},{count:pharmacies},{count:family},{count:drivers}] = await Promise.all([
@@ -428,8 +450,8 @@
         _client.from('app_config').select('contact_whatsapp1, contact_whatsapp2, contact_instagram, contact_facebook, driver_telegram_channel, contact_email').eq('id',1).maybeSingle(),
       ]);
 
-      if (settings?.customer_apk_url) { const b=document.getElementById('btn-customer-app'); b.href=settings.customer_apk_url; b.setAttribute('download','ShaheenExpress.apk'); b.style.display='flex'; }
-      if (settings?.driver_apk_url) { const b=document.getElementById('btn-driver-app'); b.href=settings.driver_apk_url; b.setAttribute('download','ShaheenExpressDriver.apk'); b.style.display='flex'; }
+      if (settings?.customer_apk_url) { const b=document.getElementById('btn-customer-app'); b.dataset.apkUrl=settings.customer_apk_url; b.onclick=(e)=>{e.preventDefault(); forceDownload(settings.customer_apk_url,'ShaheenExpress.apk',b);}; b.style.display='flex'; }
+      if (settings?.driver_apk_url) { const b=document.getElementById('btn-driver-app'); b.dataset.apkUrl=settings.driver_apk_url; b.onclick=(e)=>{e.preventDefault(); forceDownload(settings.driver_apk_url,'ShaheenExpressDriver.apk',b);}; b.style.display='flex'; }
       // [DRIVER-PLAY-STORE] رابط Google Play لتطبيق المندوب (إن كان منشورًا)
       if (settings?.driver_play_store_url) { const b=document.getElementById('btn-driver-play'); b.href=settings.driver_play_store_url; b.style.display='flex'; }
       // [IOS-PWA-LINKS] روابط نسخة آيفون (PWA) لكل من العميل والمندوب
