@@ -225,6 +225,18 @@ var APK_PREFIX=SB+'/storage/v1/object/public/';
 var $=function(id){return document.getElementById(id)};
 var apkUrl=null;
 
+/* عدّ الزيارات والتحميلات (مجهول الهوية: معرّف عشوائي محلي فقط — بلا بيانات شخصية) */
+var VID=(function(){var k='sh_vid',v=null;try{v=localStorage.getItem(k)}catch(e){}
+  if(!v||!/^[A-Za-z0-9-]{8,64}$/.test(v)){v='';try{var a=new Uint8Array(12);crypto.getRandomValues(a);a.forEach(function(x){v+=('0'+x.toString(16)).slice(-2)})}catch(e){v=String(Date.now())+Math.random().toString(16).slice(2,10)}
+    v=v.replace(/[^A-Za-z0-9]/g,'').slice(0,32);try{localStorage.setItem(k,v)}catch(e){}}
+  return v})();
+var PLAT=/Android/i.test(navigator.userAgent)?'android':(/iPad|iPhone|iPod/.test(navigator.userAgent)?'ios':'desktop');
+var IS_BOT=/bot|crawl|spider|headless|preview|lighthouse|facebookexternalhit/i.test(navigator.userAgent)||navigator.webdriver===true;
+function track(kind){if(IS_BOT||!VID||VID.length<8)return;
+  try{fetch(SB+'/rest/v1/rpc/track_site_event',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',apikey:KEY,Authorization:'Bearer '+KEY},
+    body:JSON.stringify({p_kind:kind,p_visitor:VID,p_platform:PLAT})}).catch(function(){})}catch(e){}}
+track('visit');
+
 /* شرارات خلفية */
 (function(){var s=$('sparks');if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  for(var i=0;i<26;i++){var e=document.createElement('span'),z=2+Math.random()*5;e.style.cssText='left:'+(Math.random()*100)+'%;width:'+z+'px;height:'+z*2.4+'px;animation-duration:'+(9+Math.random()*14)+'s;animation-delay:'+(-Math.random()*20)+'s';s.appendChild(e)}})();
@@ -247,7 +259,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'&&ov.classList.contains('show'))closeModal();
   if(e.key==='Tab'&&ov.classList.contains('show')){var f=ov.querySelectorAll('button,a[href]');if(!f.length)return;var a=f[0],z=f[f.length-1];
     if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}});
-$('mPlay').addEventListener('click',function(){setTimeout(closeModal,150)});
+$('mPlay').addEventListener('click',function(){track('play');setTimeout(closeModal,150)});
 
 /* أزرار التحميل المباشر */
 var apkBtns=[$('apkBtn'),$('mApk')].concat([].slice.call(document.querySelectorAll('[data-apk]')));
@@ -264,7 +276,7 @@ function failApk(){
 }
 apkBtns.forEach(function(b){b.addEventListener('click',function(e){
   if(b.getAttribute('aria-disabled')==='true'){e.preventDefault();toast('جارٍ تجهيز رابط التحميل…');loadRelease()}
-  else if(b.id==='mApk'){setTimeout(closeModal,300)}})});
+  else{track('download');if(b.id==='mApk'){setTimeout(closeModal,300)}}})});
 
 function loadRelease(){
   var ctl=new AbortController(),t=setTimeout(function(){ctl.abort()},12000);
